@@ -1,1 +1,106 @@
-<p>login — próximamente</p>
+<div class="auth-page">
+  <section class="auth-visual" aria-hidden="true">
+    <div class="auth-visual__image">
+      
+    </div>
+
+    <div class="auth-visual__content">
+      <a routerLink="/" class="auth-visual__brand">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#ffffff" />
+          <path
+            d="M9 20V12.8c0-.6.4-1.1 1-1.2l9-2c.7-.2 1.4.3 1.4 1v9.6"
+            stroke="#1e3a8a"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="10.5" cy="21.5" r="2.5" fill="#1e3a8a" />
+          <circle cx="19.5" cy="19.5" r="2.5" fill="#1e3a8a" />
+        </svg>
+        <span>Soundlook</span>
+      </a>
+
+      <h1>Aprende producción de audio de forma accesible e interactiva</h1>
+      <p>
+        Cursos, lecciones y evaluaciones pensados para acompañarte desde los fundamentos hasta
+        técnicas avanzadas de grabación y mezcla.
+      </p>
+
+      <ul class="auth-visual__features">
+        <li><span class="auth-visual__check">✓</span> 28 lecciones con recursos interactivos</li>
+        <li><span class="auth-visual__check">✓</span> Glosario visual de términos técnicos</li>
+        <li><span class="auth-visual__check">✓</span> Cuestionarios con retroalimentación inmediata</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="auth-form-panel">
+    <div class="auth-form-panel__inner">
+      <a routerLink="/" class="auth-form-panel__brand-mobile">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="var(--sl-color-primary)" />
+          <path
+            d="M9 20V12.8c0-.6.4-1.1 1-1.2l9-2c.7-.2 1.4.3 1.4 1v9.6"
+            stroke="#ffffff"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="10.5" cy="21.5" r="2.5" fill="#ffffff" />
+          <circle cx="19.5" cy="19.5" r="2.5" fill="#ffffff" />
+        </svg>
+        <span>Soundlook</span>
+      </a>
+
+      <h2>Iniciar sesión</h2>
+      <p class="auth-form-panel__subtitle">Ingresa a tu cuenta para continuar tu aprendizaje.</p>
+
+      <form class="auth-form">
+        <label class="auth-field">
+          <span>Correo electrónico</span>
+          <input type="email" name="email" placeholder="estudiante@correo.com" autocomplete="email" />
+        </label>
+
+        <label class="auth-field">
+          <span>Contraseña</span>
+          <div class="auth-field__password">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button type="button" class="auth-field__toggle" (click)="togglePasswordVisibility()">
+              {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+        </label>
+
+        <div class="auth-form__row">
+          <label class="auth-checkbox">
+            <input type="checkbox" name="rememberMe" />
+            <span>Recordar sesión</span>
+          </label>
+        </div>
+
+        <button type="submit" class="sl-btn sl-btn--primary sl-btn--lg auth-form__submit">
+          Iniciar sesión
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>o accede sin contraseña</span></div>
+
+      <button type="button" class="sl-btn sl-btn--outline auth-form__magic-link">
+        ✉ Enlace mágico por correo
+      </button>
+
+      <label class="auth-checkbox auth-form__role-toggle">
+        <input type="checkbox" name="isStaff" />
+        <span>Soy administrador / docente</span>
+      </label>
+
+      <p class="auth-form-panel__footer">¿No tienes cuenta? <a routerLink="/auth/register">Regístrate</a></p>
+    </div>
+  </section>
+</div>

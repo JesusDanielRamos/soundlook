@@ -19,6 +19,14 @@
   --sl-color-accent: var(--sl-blue-300);
   --sl-color-border: #dbe6fb;
 
+  /* Gradients + elevation, built from the brand blues */
+  --sl-gradient-hero: linear-gradient(135deg, #ffffff 0%, #eff6ff 45%, #dbeafe 100%);
+  --sl-gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+  --sl-gradient-art: linear-gradient(160deg, #dbeafe 0%, #93c5fd 100%);
+  --sl-shadow-sm: 0 1px 3px rgba(11, 18, 32, 0.06);
+  --sl-shadow-md: 0 10px 24px rgba(30, 58, 138, 0.1);
+  --sl-shadow-lg: 0 24px 48px rgba(30, 58, 138, 0.18);
+
   /* Taiga UI token overrides — validated for WCAG AA contrast (4.5:1 body text) */
   --tui-background-base: var(--sl-color-bg);
   --tui-text-primary: var(--sl-color-text);
