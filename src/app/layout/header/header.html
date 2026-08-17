@@ -1,0 +1,73 @@
+<header class="app-header">
+  <div class="app-header__bar">
+    <a routerLink="/" (click)="closeMobileMenu()" class="app-header__brand" aria-label="Soundlook — Inicio">
+      <svg class="app-header__logo" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="var(--sl-color-primary)" />
+        <path
+          d="M9 20V12.8c0-.6.4-1.1 1-1.2l9-2c.7-.2 1.4.3 1.4 1v9.6"
+          stroke="var(--sl-color-primary-contrast)"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="10.5" cy="21.5" r="2.5" fill="var(--sl-color-primary-contrast)" />
+        <circle cx="19.5" cy="19.5" r="2.5" fill="var(--sl-color-primary-contrast)" />
+      </svg>
+      <span class="app-header__brand-text">Soundlook</span>
+    </a>
+
+    <nav class="app-header__nav" [class.app-header__nav--open]="mobileMenuOpen()" aria-label="Navegación principal">
+      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileMenu()">Inicio</a>
+      <a routerLink="/courses" routerLinkActive="is-active" (click)="closeMobileMenu()">Curso</a>
+      <a routerLink="/" fragment="about" (click)="closeMobileMenu()">Acerca de</a>
+
+      <div class="app-header__nav-auth">
+        @if (isAuthenticated()) {
+          <a routerLink="/dashboard" (click)="closeMobileMenu()">Panel</a>
+          <button type="button" class="sl-btn sl-btn--ghost" (click)="signOut()">Cerrar sesión</button>
+        } @else {
+          <a routerLink="/auth/login" class="sl-btn sl-btn--primary" (click)="closeMobileMenu()">Iniciar sesión</a>
+        }
+      </div>
+    </nav>
+
+    <div class="app-header__actions">
+      @if (isAuthenticated()) {
+        <div class="app-header__user">
+          <button
+            type="button"
+            class="app-header__user-btn"
+            (click)="toggleUserMenu()"
+            [attr.aria-expanded]="userMenuOpen()"
+            aria-haspopup="true"
+          >
+            <span class="app-header__avatar">{{ displayName().charAt(0).toUpperCase() }}</span>
+            <span class="app-header__user-name">{{ displayName() }}</span>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="app-header__user-menu" role="menu">
+              <a routerLink="/dashboard" role="menuitem" (click)="closeUserMenu()">Mi panel</a>
+              <a routerLink="/progress" role="menuitem" (click)="closeUserMenu()">Mi avance</a>
+              <button type="button" role="menuitem" (click)="signOut()">Cerrar sesión</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/auth/login" class="sl-btn sl-btn--primary">Iniciar sesión</a>
+      }
+
+      <button
+        type="button"
+        class="app-header__toggle"
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="mobileMenuOpen()"
+        aria-label="Abrir menú de navegación"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>

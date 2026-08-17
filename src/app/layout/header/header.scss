@@ -1,0 +1,221 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--sl-color-bg);
+  border-bottom: 1px solid var(--sl-color-border);
+}
+
+.app-header__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+}
+
+.app-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--sl-color-text);
+  font-weight: 700;
+  font-size: 1.125rem;
+  white-space: nowrap;
+}
+
+.app-header__logo {
+  flex-shrink: 0;
+}
+
+/* Center nav (desktop): absolutely centered in the header bar, independent of
+   the logo/actions flex flow so it stays visually centered regardless of
+   their widths. */
+.app-header__nav {
+  display: flex;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+  gap: 2rem;
+
+  a {
+    color: var(--sl-color-text);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+      color: var(--sl-color-primary);
+    }
+
+    &.is-active {
+      color: var(--sl-color-primary);
+      border-bottom-color: var(--sl-color-primary);
+    }
+  }
+}
+
+.app-header__nav-auth {
+  display: none;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* User menu */
+.app-header__user {
+  position: relative;
+}
+
+.app-header__user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--sl-color-border);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+  cursor: pointer;
+  color: var(--sl-color-text);
+
+  &:hover {
+    background: var(--sl-color-surface);
+  }
+}
+
+.app-header__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--sl-blue-900);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.app-header__user-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__user-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  background: var(--sl-color-bg);
+  border: 1px solid var(--sl-color-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(11, 18, 32, 0.12);
+  padding: 0.4rem;
+
+  a,
+  button {
+    display: block;
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    color: var(--sl-color-text);
+    text-decoration: none;
+    background: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--sl-color-surface);
+    }
+  }
+}
+
+/* Mobile hamburger toggle */
+.app-header__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: transparent;
+  border: 1px solid var(--sl-color-border);
+  border-radius: 8px;
+  cursor: pointer;
+
+  span {
+    display: block;
+    height: 2px;
+    width: 1.1rem;
+    margin: 0 auto;
+    background: var(--sl-color-text);
+    border-radius: 1px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-header__nav {
+    position: fixed;
+    inset: 4rem 0 0 0;
+    left: 0;
+    transform: translateY(-8px);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    background: var(--sl-color-bg);
+    padding: 0.5rem 1.5rem 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+
+    a {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--sl-color-border);
+    }
+
+    &--open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      visibility: visible;
+    }
+  }
+
+  .app-header__nav-auth {
+    display: block;
+    margin-top: 0.75rem;
+
+    a,
+    .sl-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .app-header__actions > .sl-btn--primary,
+  .app-header__user {
+    display: none;
+  }
+
+  .app-header__toggle {
+    display: flex;
+  }
+}

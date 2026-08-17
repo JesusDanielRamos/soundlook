@@ -1,1 +1,108 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles + Soundlook theme overrides on top of Taiga UI. */
+
+:root {
+  /* Soundlook brand palette (blues) */
+  --sl-blue-900: #1e3a8a; /* headings, active nav, header on dark surfaces */
+  --sl-blue-600: #2563eb; /* primary actions, links */
+  --sl-blue-300: #93c5fd; /* accents, borders, hover backgrounds */
+  --sl-blue-50: #eff6ff; /* light surfaces, page background */
+  --sl-navy-950: #0b1220; /* dark surfaces, footer, text on light */
+
+  /* Semantic aliases used across the app */
+  --sl-color-bg: #ffffff;
+  --sl-color-surface: var(--sl-blue-50);
+  --sl-color-text: var(--sl-navy-950);
+  --sl-color-text-muted: #4b5875;
+  --sl-color-primary: var(--sl-blue-600);
+  --sl-color-primary-hover: var(--sl-blue-900);
+  --sl-color-primary-contrast: #ffffff;
+  --sl-color-accent: var(--sl-blue-300);
+  --sl-color-border: #dbe6fb;
+
+  /* Taiga UI token overrides — validated for WCAG AA contrast (4.5:1 body text) */
+  --tui-background-base: var(--sl-color-bg);
+  --tui-text-primary: var(--sl-color-text);
+  --tui-text-secondary: var(--sl-color-text-muted);
+  --tui-primary: var(--sl-color-primary);
+  --tui-primary-hover: var(--sl-color-primary-hover);
+
+  font-size: 1rem;
+}
+
+html,
+body {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  color: var(--sl-color-text);
+  background: var(--sl-color-bg);
+}
+
+/* Shared button utilities (used across header, home, auth screens) */
+.sl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.sl-btn--primary {
+  background: var(--sl-color-primary);
+  color: var(--sl-color-primary-contrast);
+
+  &:hover {
+    background: var(--sl-color-primary-hover);
+  }
+}
+
+.sl-btn--outline {
+  background: transparent;
+  color: var(--sl-color-primary);
+  border-color: var(--sl-color-primary);
+
+  &:hover {
+    background: var(--sl-color-surface);
+  }
+}
+
+.sl-btn--ghost {
+  background: transparent;
+  color: var(--sl-color-text);
+  border-color: var(--sl-color-border);
+
+  &:hover {
+    background: var(--sl-color-surface);
+  }
+}
+
+.sl-btn--lg {
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

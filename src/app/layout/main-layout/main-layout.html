@@ -1,0 +1,13 @@
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+<app-header></app-header>
+
+<div class="layout-body" [class.layout-body--with-sidebar]="auth.session()">
+  @if (auth.session()) {
+    <app-sidebar></app-sidebar>
+  }
+
+  <main id="main-content" class="layout-content" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

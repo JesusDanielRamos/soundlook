@@ -1,6 +1,15 @@
 # Soundlook
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.3.
+Plataforma de apoyo para estudiantes con discapacidad auditiva en la materia "Producción de Audio" (UACJ, Diseño de Medios Interactivos). Angular + Taiga UI en el cliente, Supabase (Auth, Database, Storage) como backend, desplegado en Vercel.
+
+Este proyecto fue generado con [Angular CLI](https://github.com/angular/angular-cli) versión 21.1.3.
+
+## Configuración de Supabase
+
+1. Crea un proyecto en [Supabase](https://supabase.com).
+2. Ejecuta el SQL de `supabase/migrations/0001_init.sql` en el SQL editor del proyecto (crea tablas, RLS y el trigger que asigna el rol `estudiante` por defecto al registrarse).
+3. Copia `src/environments/environment.ts` y completa `supabaseUrl`/`supabaseAnonKey` con los valores de tu proyecto (Project Settings → API). Nunca uses la `service_role` key en el cliente.
+4. Para producción (Vercel), configura las variables de entorno `SUPABASE_URL` y `SUPABASE_ANON_KEY` — el script `npm run prebuild` (se ejecuta automáticamente antes de `npm run build`) genera `environment.production.ts` a partir de ellas.
 
 ## Development server
 
@@ -57,3 +66,4 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+# soundlook

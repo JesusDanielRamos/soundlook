@@ -1,0 +1,41 @@
+.app-sidebar {
+  width: 15rem;
+  flex-shrink: 0;
+  background: var(--sl-color-surface);
+  border-right: 1px solid var(--sl-color-border);
+  padding: 1.5rem 1rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  a {
+    display: block;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    color: var(--sl-color-text);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      background: var(--sl-blue-300);
+      color: var(--sl-blue-900);
+    }
+
+    &.is-active {
+      background: var(--sl-color-primary);
+      color: #fff;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    display: none;
+  }
+}

@@ -1,0 +1,76 @@
+<section class="hero">
+  <div class="hero__content">
+    <span class="hero__eyebrow">Aprende sonido y audio</span>
+    <h1>Domina el diseño de sonido, paso a paso</h1>
+    <p class="hero__lead">
+      Cursos, lecciones y evaluaciones para aprender producción de audio y diseño sonoro a tu
+      propio ritmo, con seguimiento de tu avance en cada tema.
+    </p>
+
+    <div class="hero__actions">
+      @if (isAuthenticated()) {
+        <a routerLink="/dashboard" class="sl-btn sl-btn--primary sl-btn--lg">Ir a mi panel</a>
+      } @else {
+        <a routerLink="/auth/register" class="sl-btn sl-btn--primary sl-btn--lg">Comenzar ahora</a>
+        <a routerLink="/auth/login" class="sl-btn sl-btn--outline sl-btn--lg">Iniciar sesión</a>
+      }
+      <a routerLink="/courses" class="hero__link">Ver cursos disponibles →</a>
+    </div>
+  </div>
+
+  <div class="hero__art" aria-hidden="true">
+    <svg viewBox="0 0 320 240" width="100%" height="100%">
+      <rect x="0" y="0" width="320" height="240" rx="24" fill="var(--sl-color-surface)" />
+      <g stroke="var(--sl-color-primary)" stroke-width="6" stroke-linecap="round">
+        <line x1="60" y1="150" x2="60" y2="100" />
+        <line x1="90" y1="170" x2="90" y2="70" />
+        <line x1="120" y1="150" x2="120" y2="110" />
+        <line x1="150" y1="180" x2="150" y2="55" />
+        <line x1="180" y1="150" x2="180" y2="95" />
+        <line x1="210" y1="170" x2="210" y2="75" />
+        <line x1="240" y1="150" x2="240" y2="120" />
+      </g>
+      <circle cx="150" cy="30" r="14" fill="var(--sl-blue-900)" />
+    </svg>
+  </div>
+</section>
+
+<section class="features">
+  <h2>Todo lo que necesitas para aprender</h2>
+  <div class="features__grid">
+    <article class="feature-card">
+      <h3>Cursos estructurados</h3>
+      <p>Rutas de aprendizaje organizadas por nivel, desde fundamentos hasta técnicas avanzadas.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Glosario de términos</h3>
+      <p>Consulta conceptos clave de audio y producción sonora cuando los necesites.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Quizzes y evaluaciones</h3>
+      <p>Pon a prueba lo aprendido con cuestionarios al final de cada lección.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Seguimiento de avance</h3>
+      <p>Visualiza tu progreso por curso y retoma justo donde lo dejaste.</p>
+    </article>
+  </div>
+</section>
+
+<section id="about" class="about">
+  <div class="about__content">
+    <span class="hero__eyebrow">Acerca de Soundlook</span>
+    <h2>Aprender sonido, con estructura y sin ruido</h2>
+    <p>
+      Soundlook es una plataforma educativa enfocada en el diseño de sonido y la producción de
+      audio. Nace como proyecto de titulación con el objetivo de ofrecer contenido claro y
+      progresivo, pensado tanto para quienes se inician como para quienes buscan profundizar sus
+      habilidades técnicas.
+    </p>
+    <ul class="about__stats">
+      <li><strong>+0</strong><span>Cursos publicados</span></li>
+      <li><strong>+0</strong><span>Lecciones disponibles</span></li>
+      <li><strong>100%</strong><span>Enfoque práctico</span></li>
+    </ul>
+  </div>
+</section>
