@@ -3,6 +3,12 @@ import type { Session } from '@supabase/supabase-js';
 import { SupabaseClientService } from '../services/supabase-client.service';
 import { Profile } from '../models/profile.model';
 
+interface SignUpDatosExtra {
+  semester: number | null;
+  hasDisability: boolean;
+  disabilityDescription: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly supabase = inject(SupabaseClientService).client;
@@ -24,12 +30,29 @@ export class AuthService {
     if (error) throw error;
   }
 
-  async signUp(email: string, password: string, fullName: string) {
+  async signUp(email: string, password: string, fullName: string, datosExtra: SignUpDatosExtra) {
     const { error } = await this.supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        // handle_new_user() (trigger de Postgres) lee estas mismas claves de
+        // raw_user_meta_data para crear la fila en public.profiles — si cambias
+        // los nombres aquí, hay que actualizar también la migración SQL.
+        data: {
+          full_name: fullName,
+          semester: datosExtra.semester,
+          has_disability: datosExtra.hasDisability,
+          disability_description: datosExtra.disabilityDescription,
+        },
+      },
     });
+    if (error) throw error;
+  }
+
+  // Reenvía el correo de confirmación de cuenta (Supabase lo manda solo una
+  // vez al registrarse; si el usuario lo perdió o no llegó, esto genera otro).
+  async resendConfirmationEmail(email: string): Promise<void> {
+    const { error } = await this.supabase.auth.resend({ type: 'signup', email });
     if (error) throw error;
   }
 
@@ -53,7 +76,9 @@ export class AuthService {
   private async loadProfile(userId: string): Promise<void> {
     const { data, error } = await this.supabase
       .from('profiles')
-      .select('id, full_name, role, created_at, updated_at')
+      .select(
+        'id, full_name, role, semester, has_disability, disability_description, created_at, updated_at',
+      )
       .eq('id', userId)
       .single();
 
@@ -66,6 +91,9 @@ export class AuthService {
       id: data.id,
       fullName: data.full_name,
       role: data.role,
+      semester: data.semester,
+      hasDisability: data.has_disability,
+      disabilityDescription: data.disability_description,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     });

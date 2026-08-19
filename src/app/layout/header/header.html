@@ -17,9 +17,11 @@
     </a>
 
     <nav class="app-header__nav" [class.app-header__nav--open]="mobileMenuOpen()" aria-label="Navegación principal">
-      <a routerLink="/" [class.is-active]="isHomeActive()" (click)="closeMobileMenu()">Inicio</a>
-      <a routerLink="/courses" routerLinkActive="is-active" (click)="closeMobileMenu()">Curso</a>
-      <a routerLink="/" fragment="about" [class.is-active]="isAboutActive()" (click)="closeMobileMenu()">Acerca de</a>
+      @if (!isAuthenticated()) {
+        <a routerLink="/" [class.is-active]="isHomeActive()" (click)="closeMobileMenu()">Inicio</a>
+        <a routerLink="/courses" routerLinkActive="is-active" (click)="closeMobileMenu()">Curso</a>
+        <a routerLink="/" fragment="about" [class.is-active]="isAboutActive()" (click)="closeMobileMenu()">Acerca de</a>
+      }
 
       <div class="app-header__nav-auth">
         @if (isAuthenticated()) {

@@ -24,13 +24,13 @@
       <h1>Aprende producción de audio de forma accesible e interactiva</h1>
       <p>
         Cursos, lecciones y evaluaciones pensados para acompañarte desde los fundamentos hasta
-        técnicas avanzadas de grabación y mezcla.
+        conocimientos avanzados en producción de audio.
       </p>
 
       <ul class="auth-visual__features">
-        <li><span class="auth-visual__check">✓</span> 28 lecciones con recursos interactivos</li>
+        <li><span class="auth-visual__check">✓</span> 12 lecciones con recursos interactivos</li>
         <li><span class="auth-visual__check">✓</span> Glosario visual de términos técnicos</li>
-        <li><span class="auth-visual__check">✓</span> Cuestionarios con retroalimentación inmediata</li>
+        <li><span class="auth-visual__check">✓</span> Evaluaciones con retroalimentación inmediata</li>
       </ul>
     </div>
   </section>
@@ -56,10 +56,22 @@
       <h2>Iniciar sesión</h2>
       <p class="auth-form-panel__subtitle">Ingresa a tu cuenta para continuar tu aprendizaje.</p>
 
-      <form class="auth-form">
+      <!-- novalidate: apagamos la validación nativa del navegador para que
+           todos los mensajes de error pasen por Angular (ngModel + onSubmit)
+           y se comporten igual en todos los navegadores. -->
+      <form class="auth-form" #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate>
         <label class="auth-field">
           <span>Correo electrónico</span>
-          <input type="email" name="email" placeholder="estudiante@correo.com" autocomplete="email" />
+          <input
+            type="email"
+            name="email"
+            required
+            email
+            placeholder="estudiante@correo.com"
+            autocomplete="email"
+            [(ngModel)]="email"
+            [disabled]="loading() || formularioBloqueado"
+          />
         </label>
 
         <label class="auth-field">
@@ -68,8 +80,12 @@
             <input
               [type]="showPassword() ? 'text' : 'password'"
               name="password"
+              required
+              minlength="6"
               placeholder="••••••••"
               autocomplete="current-password"
+              [(ngModel)]="password"
+              [disabled]="loading() || formularioBloqueado"
             />
             <button type="button" class="auth-field__toggle" (click)="togglePasswordVisibility()">
               {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
@@ -84,12 +100,41 @@
           </label>
         </div>
 
-        <button type="submit" class="sl-btn sl-btn--primary sl-btn--lg auth-form__submit">
-          Iniciar sesión
+        @if (errorMessage(); as error) {
+          <p class="auth-form__error" role="alert">{{ error }}</p>
+
+          @if (emailSinConfirmar()) {
+            @if (reenvioExitoso()) {
+              <p class="auth-form__hint">Correo reenviado. Revisa tu bandeja de entrada.</p>
+            } @else {
+              <button
+                type="button"
+                class="auth-form__resend"
+                [disabled]="reenviando()"
+                (click)="reenviarConfirmacion()"
+              >
+                {{ reenviando() ? 'Reenviando…' : 'Reenviar correo de confirmación' }}
+              </button>
+            }
+          }
+        }
+
+        @if (formularioBloqueado) {
+          <p class="auth-form__error" role="alert">
+            Demasiados intentos fallidos. Intenta de nuevo en {{ segundosRestantes() }}s.
+          </p>
+        }
+
+        <button
+          type="submit"
+          class="sl-btn sl-btn--primary sl-btn--lg auth-form__submit"
+          [disabled]="loading() || formularioBloqueado"
+        >
+          {{ loading() ? 'Ingresando…' : 'Iniciar sesión' }}
         </button>
       </form>
 
-      <div class="auth-divider"><span>o accede sin contraseña</span></div>
+      <!-- <div class="auth-divider"><span>o accede sin contraseña</span></div>
 
       <button type="button" class="sl-btn sl-btn--outline auth-form__magic-link">
         ✉ Enlace mágico por correo
@@ -98,7 +143,7 @@
       <label class="auth-checkbox auth-form__role-toggle">
         <input type="checkbox" name="isStaff" />
         <span>Soy administrador / docente</span>
-      </label>
+      </label> -->
 
       <p class="auth-form-panel__footer">¿No tienes cuenta? <a routerLink="/auth/register">Regístrate</a></p>
     </div>

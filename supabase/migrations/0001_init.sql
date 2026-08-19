@@ -16,6 +16,9 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   role public.user_role not null default 'estudiante',
+  semester smallint check (semester between 1 and 9),
+  has_disability boolean not null default false,
+  disability_description text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -28,8 +31,15 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, role)
-  values (new.id, new.raw_user_meta_data ->> 'full_name', 'estudiante');
+  insert into public.profiles (id, full_name, role, semester, has_disability, disability_description)
+  values (
+    new.id,
+    new.raw_user_meta_data ->> 'full_name',
+    'estudiante',
+    (new.raw_user_meta_data ->> 'semester')::smallint,
+    coalesce((new.raw_user_meta_data ->> 'has_disability')::boolean, false),
+    new.raw_user_meta_data ->> 'disability_description'
+  );
   return new;
 end;
 $$;

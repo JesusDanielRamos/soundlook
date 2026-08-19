@@ -1,1 +1,221 @@
-<p>register — próximamente</p>
+<div class="auth-page">
+  <section class="auth-visual" aria-hidden="true">
+    <div class="auth-visual__image"></div>
+
+    <div class="auth-visual__content">
+      <a routerLink="/" class="auth-visual__brand">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#ffffff" />
+          <path
+            d="M9 20V12.8c0-.6.4-1.1 1-1.2l9-2c.7-.2 1.4.3 1.4 1v9.6"
+            stroke="#1e3a8a"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="10.5" cy="21.5" r="2.5" fill="#1e3a8a" />
+          <circle cx="19.5" cy="19.5" r="2.5" fill="#1e3a8a" />
+        </svg>
+        <span>Soundlook</span>
+      </a>
+
+      <h1>Únete a la comunidad de Diseño de Medios Interactivos</h1>
+      <p>
+        Crea tu cuenta para acceder a lecciones, ejercicios y evaluaciones pensadas para
+        acompañarte a lo largo de la carrera.
+      </p>
+
+      <ul class="auth-visual__features">
+        <li><span class="auth-visual__check">✓</span> Contenido adaptado a tu semestre</li>
+        <li><span class="auth-visual__check">✓</span> Accesibilidad pensada para todo el alumnado</li>
+        <li><span class="auth-visual__check">✓</span> Progreso guardado en tu perfil</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="auth-form-panel">
+    <div class="auth-form-panel__inner">
+      <a routerLink="/" class="auth-form-panel__brand-mobile">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="var(--sl-color-primary)" />
+          <path
+            d="M9 20V12.8c0-.6.4-1.1 1-1.2l9-2c.7-.2 1.4.3 1.4 1v9.6"
+            stroke="#ffffff"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="10.5" cy="21.5" r="2.5" fill="#ffffff" />
+          <circle cx="19.5" cy="19.5" r="2.5" fill="#ffffff" />
+        </svg>
+        <span>Soundlook</span>
+      </a>
+
+      <h2>Crear cuenta</h2>
+      <p class="auth-form-panel__subtitle">Regístrate para comenzar tu aprendizaje.</p>
+
+      <!-- novalidate: la validación nativa del navegador se apaga a propósito;
+           todos los mensajes pasan por Angular (ngModel + onSubmit) para que
+           se vean igual en cualquier navegador. -->
+      <form class="auth-form" #registerForm="ngForm" (ngSubmit)="onSubmit(registerForm)" novalidate>
+        <label class="auth-field">
+          <span>Nombre completo</span>
+          <input
+            type="text"
+            name="fullName"
+            required
+            placeholder="Nombre y apellidos"
+            autocomplete="name"
+            [ngModel]="fullName()"
+            (ngModelChange)="fullName.set($event)"
+            [disabled]="loading() || formularioBloqueado"
+          />
+        </label>
+
+        <label class="auth-field">
+          <span>Correo electrónico</span>
+          <input
+            type="email"
+            name="email"
+            required
+            email
+            placeholder="estudiante@correo.com"
+            autocomplete="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            [disabled]="loading() || formularioBloqueado"
+          />
+        </label>
+
+        <label class="auth-field">
+          <span>Contraseña</span>
+          <div class="auth-field__password">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              name="password"
+              required
+              minlength="8"
+              placeholder="••••••••"
+              autocomplete="new-password"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              [disabled]="loading() || formularioBloqueado"
+            />
+            <button type="button" class="auth-field__toggle" (click)="togglePasswordVisibility()">
+              {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+
+          @if (passwordStrength().nivel !== 'vacia') {
+            <div
+              class="password-strength"
+              [class]="'password-strength--' + passwordStrength().nivel"
+            >
+              <div class="password-strength__track">
+                <div
+                  class="password-strength__fill"
+                  [style.width.%]="passwordStrength().porcentaje"
+                ></div>
+              </div>
+              <span class="password-strength__label">
+                Seguridad:
+                {{
+                  passwordStrength().nivel === 'baja'
+                    ? 'Baja'
+                    : passwordStrength().nivel === 'media'
+                      ? 'Media'
+                      : 'Alta'
+                }}
+              </span>
+            </div>
+          }
+        </label>
+
+        <label class="auth-field">
+          <span>Confirmar contraseña</span>
+          <div class="auth-field__password">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              name="confirmPassword"
+              required
+              placeholder="••••••••"
+              autocomplete="new-password"
+              [ngModel]="confirmPassword()"
+              (ngModelChange)="confirmPassword.set($event)"
+              [disabled]="loading() || formularioBloqueado"
+            />
+          </div>
+
+          @if (!passwordsMatch()) {
+            <span class="auth-field__hint auth-field__hint--error">Las contraseñas no coinciden.</span>
+          }
+        </label>
+
+        <label class="auth-field">
+          <span>Semestre de Diseño de Medios Interactivos</span>
+          <select
+            name="semester"
+            required
+            [ngModel]="semester()"
+            (ngModelChange)="semester.set($event)"
+            [disabled]="loading() || formularioBloqueado"
+          >
+            <option [ngValue]="null" disabled>Selecciona tu semestre</option>
+            @for (semester of semesters; track semester) {
+              <option [ngValue]="semester">{{ semester }}º semestre</option>
+            }
+          </select>
+        </label>
+
+        <div class="auth-field auth-field--disability">
+          <label class="auth-checkbox">
+            <input
+              type="checkbox"
+              name="hasDisability"
+              [checked]="hasDisability()"
+              [disabled]="loading() || formularioBloqueado"
+              (change)="toggleDisability($any($event.target).checked)"
+            />
+            <span>¿Tienes alguna discapacidad?</span>
+          </label>
+
+          @if (hasDisability()) {
+            <div class="auth-disability-box">
+              <label class="auth-field">
+                <span>Descríbela para poder adaptar tu experiencia</span>
+                <textarea
+                  name="disabilityDescription"
+                  rows="3"
+                  placeholder="Por ejemplo: baja visión, pérdida de audición conductiva, pérdida auditiva mixta..."
+                  [ngModel]="disabilityDescription()"
+                  (ngModelChange)="disabilityDescription.set($event)"
+                  [disabled]="loading() || formularioBloqueado"
+                ></textarea>
+              </label>
+            </div>
+          }
+        </div>
+
+        @if (errorMessage(); as error) {
+          <p class="auth-form__error" role="alert">{{ error }}</p>
+        }
+
+        @if (formularioBloqueado) {
+          <p class="auth-form__error" role="alert">
+            Demasiados intentos fallidos. Intenta de nuevo en {{ segundosRestantes() }}s.
+          </p>
+        }
+
+        <button
+          type="submit"
+          class="sl-btn sl-btn--primary sl-btn--lg auth-form__submit"
+          [disabled]="loading() || formularioBloqueado"
+        >
+          {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+        </button>
+      </form>
+
+      <p class="auth-form-panel__footer">¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a></p>
+    </div>
+  </section>
+</div>
