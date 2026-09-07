@@ -1,1 +1,64 @@
-<p>dashboard — próximamente</p>
+<section class="dash-welcome">
+  <h1>¡Bienvenido de vuelta, {{ firstName() }}! 👋</h1>
+  <p>Continúa donde lo dejaste</p>
+</section>
+
+@if (loading()) {
+  <p class="dash-state">Cargando tu avance…</p>
+} @else if (error()) {
+  <p class="dash-state dash-state--error">{{ error() }}</p>
+} @else {
+  <section class="dash-stats">
+    <article class="stat-card">
+      <span class="stat-card__label">Progreso general</span>
+      <strong class="stat-card__value">{{ overallPercent() }}%</strong>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" [style.width.%]="overallPercent()"></div>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-card__label">Lecciones completadas</span>
+      <strong class="stat-card__value">{{ totalCompleted() }}/{{ totalLessons() }}</strong>
+      <span class="stat-card__hint">de {{ totalLessons() }} lecciones</span>
+    </article>
+  </section>
+
+  <section class="dash-section">
+    <h2>Curso disponible</h2>
+
+    @for (course of courses(); track course.id) {
+      <article class="course-card">
+        <div class="course-card__thumb" aria-hidden="true"></div>
+        <div class="course-card__body">
+          <h3>{{ course.title }}</h3>
+          <p class="course-card__meta">{{ course.unitsCount }} unidades · {{ course.lessonsCount }} lecciones</p>
+          <p class="course-card__percent">{{ course.percent }}% completado</p>
+          <div class="progress-bar">
+            <div class="progress-bar__fill" [style.width.%]="course.percent"></div>
+          </div>
+        </div>
+        <a [routerLink]="['/courses', course.id]" class="sl-btn sl-btn--primary">Continuar</a>
+      </article>
+    } @empty {
+      <p class="dash-state">Todavía no hay cursos publicados.</p>
+    }
+  </section>
+
+  <section class="dash-section">
+    <h2>Últimas lecciones vistas</h2>
+
+    @for (lesson of recentLessons(); track lesson.id) {
+      <article class="recent-card">
+        <div class="recent-card__body">
+          <h3>{{ lesson.title }}</h3>
+          <p>Unidad {{ lesson.unitOrder }}</p>
+        </div>
+        <span class="recent-card__time">{{ lesson.relativeTime }}</span>
+        <a [routerLink]="['/lessons', lesson.id]" class="recent-card__link" aria-label="Ir a {{ lesson.title }}">→</a>
+      </article>
+    } @empty {
+      <p class="dash-state">Aún no has visto ninguna lección.</p>
+    }
+  </section>
+}

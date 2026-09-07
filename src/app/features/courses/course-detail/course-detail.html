@@ -1,1 +1,39 @@
-<p>course-detail — próximamente</p>
+<a routerLink="/courses" class="course-detail__back">← Volver a cursos</a>
+
+@if (loading()) {
+  <p class="course-detail-state">Cargando curso…</p>
+} @else if (error()) {
+  <p class="course-detail-state course-detail-state--error">{{ error() }}</p>
+} @else if (course(); as course) {
+  <header class="course-detail__header">
+    <h1>{{ course.title }}</h1>
+    @if (course.description) {
+      <p>{{ course.description }}</p>
+    }
+  </header>
+
+  @for (unit of course.units; track unit.id) {
+    <section class="course-unit">
+      <h2>{{ unit.title }}</h2>
+      @if (unit.description) {
+        <p class="course-unit__desc">{{ unit.description }}</p>
+      }
+
+      @if (unit.lessons.length) {
+        <ul class="course-unit__lessons">
+          @for (lesson of unit.lessons; track lesson.id) {
+            <li>
+              <a [routerLink]="['/lessons', lesson.id]">{{ lesson.title }}</a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="course-unit__empty">Todavía no hay lecciones en esta unidad.</p>
+      }
+    </section>
+  } @empty {
+    <p class="course-detail-state">Este curso todavía no tiene unidades publicadas.</p>
+  }
+} @else {
+  <p class="course-detail-state">No encontramos este curso.</p>
+}

@@ -42,6 +42,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/progress/progress').then((m) => m.Progress),
       },
+      {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+      },
     ],
   },
   {

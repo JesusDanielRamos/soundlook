@@ -9,6 +9,13 @@ interface SignUpDatosExtra {
   disabilityDescription: string | null;
 }
 
+export interface ProfileUpdate {
+  fullName: string;
+  semester: number | null;
+  hasDisability: boolean;
+  disabilityDescription: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly supabase = inject(SupabaseClientService).client;
@@ -54,6 +61,28 @@ export class AuthService {
   async resendConfirmationEmail(email: string): Promise<void> {
     const { error } = await this.supabase.auth.resend({ type: 'signup', email });
     if (error) throw error;
+  }
+
+  // profiles_update_own_fullname permite al usuario actualizar su propia fila
+  // (el nombre de la policy es engañoso: el "with check (id = auth.uid())"
+  // aplica al UPDATE completo, no solo a full_name).
+  async updateProfile(updates: ProfileUpdate): Promise<void> {
+    const userId = this.session()?.user.id;
+    if (!userId) throw new Error('No hay sesión activa.');
+
+    const { error } = await this.supabase
+      .from('profiles')
+      .update({
+        full_name: updates.fullName,
+        semester: updates.semester,
+        has_disability: updates.hasDisability,
+        disability_description: updates.disabilityDescription,
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    await this.loadProfile(userId);
   }
 
   async signOut(): Promise<void> {

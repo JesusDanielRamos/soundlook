@@ -1,0 +1,111 @@
+@if (profile(); as profile) {
+  <section class="profile-header">
+    <span class="profile-avatar">{{ initial() }}</span>
+    <div>
+      <h1>{{ profile.fullName || 'Sin nombre registrado' }}</h1>
+      <p class="profile-header__email">{{ email() }}</p>
+    </div>
+    <span class="profile-role-badge">{{ roleLabel() }}</span>
+  </section>
+
+  @if (!editing()) {
+    <section class="profile-card">
+      <div class="profile-card__row">
+        <span class="profile-card__label">Semestre</span>
+        <span class="profile-card__value">
+          {{ profile.semester ? profile.semester + 'º semestre' : 'No especificado' }}
+        </span>
+      </div>
+
+      <div class="profile-card__row">
+        <span class="profile-card__label">¿Tiene alguna discapacidad?</span>
+        <span class="profile-card__value">{{ profile.hasDisability ? 'Sí' : 'No' }}</span>
+      </div>
+
+      @if (profile.hasDisability) {
+        <div class="profile-card__row">
+          <span class="profile-card__label">Descripción</span>
+          <span class="profile-card__value">
+            {{ profile.disabilityDescription || 'Sin descripción' }}
+          </span>
+        </div>
+      }
+
+      @if (savedJustNow()) {
+        <p class="profile-card__saved">Tu perfil se actualizó correctamente.</p>
+      }
+
+      <button type="button" class="sl-btn sl-btn--primary" (click)="startEditing()">
+        Editar perfil
+      </button>
+    </section>
+  } @else {
+    <form class="profile-card" #profileForm="ngForm" (ngSubmit)="onSubmit(profileForm)" novalidate>
+      <label class="profile-field">
+        <span>Nombre completo</span>
+        <input
+          type="text"
+          name="fullName"
+          required
+          [ngModel]="fullName()"
+          (ngModelChange)="fullName.set($event)"
+          [disabled]="saving()"
+        />
+      </label>
+
+      <label class="profile-field">
+        <span>Semestre</span>
+        <select
+          name="semester"
+          [ngModel]="semester()"
+          (ngModelChange)="semester.set($event)"
+          [disabled]="saving()"
+        >
+          <option [ngValue]="null">No especificado</option>
+          @for (s of semesters; track s) {
+            <option [ngValue]="s">{{ s }}º semestre</option>
+          }
+        </select>
+      </label>
+
+      <label class="profile-checkbox">
+        <input
+          type="checkbox"
+          name="hasDisability"
+          [checked]="hasDisability()"
+          [disabled]="saving()"
+          (change)="toggleDisability($any($event.target).checked)"
+        />
+        <span>¿Tienes alguna discapacidad?</span>
+      </label>
+
+      @if (hasDisability()) {
+        <label class="profile-field">
+          <span>Descripción</span>
+          <textarea
+            name="disabilityDescription"
+            rows="3"
+            [ngModel]="disabilityDescription()"
+            (ngModelChange)="disabilityDescription.set($event)"
+            [disabled]="saving()"
+          ></textarea>
+        </label>
+      }
+
+      @if (error(); as errorMessage) {
+        <p class="profile-card__error" role="alert">{{ errorMessage }}</p>
+      }
+
+      <div class="profile-form__actions">
+        <button type="submit" class="sl-btn sl-btn--primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="saving()" (click)="cancelEditing()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  }
+} @else {
+  <p class="profile-loading">Cargando tu perfil…</p>
+}

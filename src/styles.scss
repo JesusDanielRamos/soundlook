@@ -27,6 +27,10 @@
   --sl-shadow-md: 0 10px 24px rgba(30, 58, 138, 0.1);
   --sl-shadow-lg: 0 24px 48px rgba(30, 58, 138, 0.18);
 
+  /* Layout constants shared by the header and the authenticated sidebar/nav */
+  --sl-header-height: 4rem;
+  --sl-mobile-nav-height: 4.25rem;
+
   /* Taiga UI token overrides — validated for WCAG AA contrast (4.5:1 body text) */
   --tui-background-base: var(--sl-color-bg);
   --tui-text-primary: var(--sl-color-text);

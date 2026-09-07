@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { TUI_DARK_MODE } from '@taiga-ui/core';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -13,8 +14,13 @@ import { AuthService } from '../../core/auth/auth.service';
 export class Header {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly darkMode = inject(TUI_DARK_MODE);
 
   readonly isAuthenticated = computed(() => !!this.auth.session());
+
+  toggleDarkMode(): void {
+    this.darkMode.update((dark) => !dark);
+  }
   readonly displayName = computed(
     () => this.auth.profile()?.fullName ?? this.auth.session()?.user.email ?? 'Mi cuenta',
   );

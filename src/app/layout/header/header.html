@@ -1,6 +1,11 @@
 <header class="app-header">
   <div class="app-header__bar">
-    <a routerLink="/" (click)="closeMobileMenu()" class="app-header__brand" aria-label="Soundlook — Inicio">
+    <a
+      [routerLink]="isAuthenticated() ? '/dashboard' : '/'"
+      (click)="closeMobileMenu()"
+      class="app-header__brand"
+      aria-label="Soundlook — Inicio"
+    >
       <svg class="app-header__logo" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="var(--sl-color-primary)" />
         <path
@@ -35,6 +40,37 @@
 
     <div class="app-header__actions">
       @if (isAuthenticated()) {
+        <button
+          type="button"
+          class="app-header__theme-toggle"
+          (click)="toggleDarkMode()"
+          [attr.aria-pressed]="darkMode()"
+          [attr.aria-label]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
+          [title]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
+        >
+          @if (darkMode()) {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8" />
+              <path
+                d="M12 2.5v2.25M12 19.25v2.25M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.4 19.6 6 18M18 6l1.6-1.6"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+          }
+        </button>
+
         <div class="app-header__user">
           <button
             type="button"
@@ -49,8 +85,9 @@
 
           @if (userMenuOpen()) {
             <div class="app-header__user-menu" role="menu">
-              <a routerLink="/dashboard" role="menuitem" (click)="closeUserMenu()">Mi panel</a>
-              <a routerLink="/progress" role="menuitem" (click)="closeUserMenu()">Mi avance</a>
+              <a routerLink="/dashboard" role="menuitem" (click)="closeUserMenu()">Panel</a>
+              <a routerLink="/profile" role="menuitem" (click)="closeUserMenu()">Perfil</a>
+              <a routerLink="/progress" role="menuitem" (click)="closeUserMenu()">Avance</a>
               <button type="button" role="menuitem" (click)="signOut()">Cerrar sesión</button>
             </div>
           }

@@ -1,1 +1,30 @@
-<p>course-list — próximamente</p>
+<section class="courses-page">
+  <header class="courses-page__header">
+    <h1>Cursos</h1>
+    <p>Explora el contenido disponible para tu semestre.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="courses-state">Cargando cursos…</p>
+  } @else if (error()) {
+    <p class="courses-state courses-state--error">{{ error() }}</p>
+  } @else {
+    <div class="courses-grid">
+      @for (course of courses(); track course.id) {
+        <article class="course-tile">
+          <div class="course-tile__thumb" aria-hidden="true">🎧</div>
+          <div class="course-tile__body">
+            <h2>{{ course.title }}</h2>
+            @if (course.description) {
+              <p class="course-tile__desc">{{ course.description }}</p>
+            }
+            <p class="course-tile__meta">{{ course.unitsCount }} unidades · {{ course.lessonsCount }} lecciones</p>
+          </div>
+          <a [routerLink]="['/courses', course.id]" class="sl-btn sl-btn--primary">Ver curso</a>
+        </article>
+      } @empty {
+        <p class="courses-state">Todavía no hay cursos publicados.</p>
+      }
+    </div>
+  }
+</section>
