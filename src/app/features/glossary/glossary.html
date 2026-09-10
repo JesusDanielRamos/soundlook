@@ -1,1 +1,203 @@
-<p>glossary — próximamente</p>
+<section class="glossary-page">
+  <header class="glossary-page__header">
+    <div>
+      <h1>Glosario de Audio</h1>
+      <p>Consulta y aprende los términos técnicos esenciales de la producción de audio.</p>
+    </div>
+
+    @if (canManage()) {
+      <button type="button" class="sl-btn sl-btn--primary" (click)="openModal()">+ Agregar término</button>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="glossary-state">Cargando glosario…</p>
+  } @else if (error()) {
+    <p class="glossary-state glossary-state--error">{{ error() }}</p>
+  } @else {
+    <div class="glossary-layout">
+      <aside class="glossary-filters">
+        <label class="glossary-search">
+          <span>Buscar término</span>
+          <input
+            type="search"
+            placeholder="Buscar…"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </label>
+
+        <div class="glossary-categories">
+          <span class="glossary-categories__label">Categorías</span>
+          @for (category of categories(); track category) {
+            <button
+              type="button"
+              class="glossary-category-btn"
+              [class.is-active]="selectedCategory() === category"
+              (click)="selectedCategory.set(category)"
+            >
+              {{ category }}
+            </button>
+          }
+        </div>
+      </aside>
+
+      <div class="glossary-results">
+        <p class="glossary-results__count">
+          {{ filteredTerms().length }} término{{ filteredTerms().length === 1 ? '' : 's' }}
+        </p>
+
+        <div class="glossary-grid">
+          @for (term of filteredTerms(); track term.id) {
+            <article class="glossary-card" [class.is-expanded]="isExpanded(term.id)">
+              <button
+                type="button"
+                class="glossary-card__toggle"
+                (click)="toggleExpand(term.id)"
+                [attr.aria-expanded]="isExpanded(term.id)"
+              >
+                <div class="glossary-card__thumb">
+                  @if (term.imageUrl) {
+                    <img [src]="term.imageUrl" [alt]="term.term" />
+                  } @else {
+                    <span aria-hidden="true">🎧</span>
+                  }
+                </div>
+
+                <div class="glossary-card__heading">
+                  <h3>{{ term.term }}</h3>
+                  @if (term.category) {
+                    <span class="glossary-card__badge">{{ term.category }}</span>
+                  }
+                </div>
+
+                <svg class="glossary-card__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+
+              @if (isExpanded(term.id)) {
+                <div class="glossary-card__body">
+                  <p>{{ term.definition }}</p>
+                  @if (term.videoUrl) {
+                    <a
+                      [href]="term.videoUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="glossary-card__video-link"
+                    >
+                      Ver video relacionado ↗
+                    </a>
+                  }
+                </div>
+              }
+            </article>
+          } @empty {
+            <p class="glossary-state">No encontramos términos con ese filtro.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</section>
+
+@if (modalOpen()) {
+  <div class="glossary-modal-backdrop" (click)="closeModal()">
+    <div
+      class="glossary-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="glossary-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="glossary-modal-title">Agregar término al glosario</h2>
+
+      <form #termForm="ngForm" (ngSubmit)="onSubmit(termForm)" novalidate>
+        <label class="glossary-field">
+          <span>Término</span>
+          <input
+            type="text"
+            name="term"
+            required
+            [ngModel]="newTerm()"
+            (ngModelChange)="newTerm.set($event)"
+            [disabled]="saving()"
+          />
+        </label>
+
+        <label class="glossary-field">
+          <span>Definición</span>
+          <textarea
+            name="definition"
+            rows="3"
+            required
+            [ngModel]="newDefinition()"
+            (ngModelChange)="newDefinition.set($event)"
+            [disabled]="saving()"
+          ></textarea>
+        </label>
+
+        <label class="glossary-field">
+          <span>Categoría (opcional)</span>
+          <input
+            type="text"
+            name="category"
+            placeholder="Por ejemplo: Fundamentos, Procesamiento…"
+            [ngModel]="newCategory()"
+            (ngModelChange)="newCategory.set($event)"
+            [disabled]="saving()"
+          />
+        </label>
+
+        <label class="glossary-field">
+          <span>Imagen (opcional)</span>
+          <input type="file" name="image" accept="image/*" (change)="onImageSelected($event)" [disabled]="saving()" />
+        </label>
+
+        <label class="glossary-field">
+          <span>Link a video (opcional)</span>
+          <input
+            type="url"
+            name="videoUrl"
+            placeholder="https://…"
+            [ngModel]="newVideoUrl()"
+            (ngModelChange)="newVideoUrl.set($event)"
+            [disabled]="saving()"
+          />
+        </label>
+
+        <label class="glossary-field">
+          <span>Visibilidad</span>
+          <select
+            name="status"
+            [ngModel]="newStatus()"
+            (ngModelChange)="newStatus.set($event)"
+            [disabled]="saving()"
+          >
+            <option value="published">Publicado (visible para estudiantes)</option>
+            <option value="draft">Borrador (solo visible para staff)</option>
+          </select>
+        </label>
+
+        @if (formError(); as errorMessage) {
+          <p class="glossary-modal__error" role="alert">{{ errorMessage }}</p>
+        }
+
+        <div class="glossary-modal__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando…' : 'Guardar término' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="saving()" (click)="closeModal()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
