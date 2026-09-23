@@ -125,6 +125,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   gap: 1.25rem;
+  // Por default cada fila de un grid estira sus items a la altura del más
+  // alto — al expandir una tarjeta, sus vecinas de la misma fila crecían
+  // en blanco (sin contenido) dando la impresión de que también se abrían.
+  align-items: start;
 }
 
 .glossary-card {

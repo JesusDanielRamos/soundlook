@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { ContentStatus } from '../../core/models/content.model';
-import { GlossaryService, GlossaryTerm } from './glossary.service';
+import { GLOSSARY_CATEGORIES, GlossaryService, GlossaryTerm } from './glossary.service';
 
 @Component({
   selector: 'app-glossary',
@@ -22,17 +22,23 @@ export class Glossary {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly terms = signal<GlossaryTerm[]>([]);
-  readonly expandedIds = signal<ReadonlySet<string>>(new Set());
+  // Solo una tarjeta expandida a la vez (comportamiento de accordion).
+  readonly expandedId = signal<string | null>(null);
 
   readonly searchQuery = signal('');
   readonly selectedCategory = signal('Todos');
 
+  // Catálogo fijo + cualquier categoría "suelta" que ya exista en datos
+  // viejos (por si algún término quedó con texto libre de antes de fijar
+  // este catálogo) — así el filtro nunca esconde un término por accidente.
   readonly categories = computed(() => {
-    const found = new Set<string>();
+    const extra = new Set<string>();
     for (const term of this.terms()) {
-      if (term.category) found.add(term.category);
+      if (term.category && !GLOSSARY_CATEGORIES.includes(term.category)) {
+        extra.add(term.category);
+      }
     }
-    return ['Todos', ...Array.from(found).sort()];
+    return ['Todos', ...GLOSSARY_CATEGORIES, ...Array.from(extra).sort()];
   });
 
   readonly filteredTerms = computed(() => {
@@ -54,9 +60,11 @@ export class Glossary {
   readonly saving = signal(false);
   readonly formError = signal<string | null>(null);
 
+  protected readonly glossaryCategories = GLOSSARY_CATEGORIES;
+
   protected readonly newTerm = signal('');
   protected readonly newDefinition = signal('');
-  protected readonly newCategory = signal('');
+  protected readonly newCategory = signal<string | null>(null);
   protected readonly newVideoUrl = signal('');
   protected readonly newStatus = signal<ContentStatus>('published');
   protected readonly newImageFile = signal<File | null>(null);
@@ -79,25 +87,17 @@ export class Glossary {
   }
 
   toggleExpand(id: string): void {
-    this.expandedIds.update((current) => {
-      const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+    this.expandedId.update((current) => (current === id ? null : id));
   }
 
   isExpanded(id: string): boolean {
-    return this.expandedIds().has(id);
+    return this.expandedId() === id;
   }
 
   openModal(): void {
     this.newTerm.set('');
     this.newDefinition.set('');
-    this.newCategory.set('');
+    this.newCategory.set(null);
     this.newVideoUrl.set('');
     this.newStatus.set('published');
     this.newImageFile.set(null);
@@ -125,7 +125,7 @@ export class Glossary {
       const created = await this.glossaryService.createTerm({
         term: this.newTerm().trim(),
         definition: this.newDefinition().trim(),
-        category: this.newCategory().trim() || null,
+        category: this.newCategory(),
         videoUrl: this.newVideoUrl().trim() || null,
         status: this.newStatus(),
         imageFile: this.newImageFile(),

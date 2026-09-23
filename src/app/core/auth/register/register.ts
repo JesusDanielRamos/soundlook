@@ -21,7 +21,7 @@ export class Register implements OnDestroy {
   protected readonly showPassword = signal(false);
   protected readonly hasDisability = signal(false);
 
-  protected readonly semesters = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  protected readonly semesters = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   // Modelo del formulario. fullName/email/semester/disabilityDescription van
   // por ngModel (FormsModule); password/confirmPassword se manejan igual,

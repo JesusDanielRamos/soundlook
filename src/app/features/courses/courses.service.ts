@@ -9,10 +9,13 @@ export interface CourseListItem {
   lessonsCount: number;
 }
 
+export type UnitStatus = 'completed' | 'in_progress' | 'pending';
+
 export interface CourseLesson {
   id: string;
   title: string;
   order: number;
+  completed: boolean;
 }
 
 export interface CourseUnit {
@@ -21,6 +24,32 @@ export interface CourseUnit {
   description: string | null;
   order: number;
   lessons: CourseLesson[];
+  status: UnitStatus;
+}
+
+export type LessonState = 'completed' | 'current' | 'pending';
+
+export interface UnitLesson {
+  id: string;
+  title: string;
+  order: number;
+  estimatedMinutes: number | null;
+  completed: boolean;
+  state: LessonState;
+}
+
+export interface UnitDetail {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  title: string;
+  description: string | null;
+  order: number;
+  status: UnitStatus;
+  lessons: UnitLesson[];
+  completedCount: number;
+  totalCount: number;
+  totalMinutes: number | null;
 }
 
 export interface CourseWithUnits {
@@ -28,6 +57,13 @@ export interface CourseWithUnits {
   title: string;
   description: string | null;
   units: CourseUnit[];
+  totalLessons: number;
+  completedLessons: number;
+  percent: number;
+  // Primera lección pendiente (para el botón "Continuar curso"). Si ya
+  // terminó todo el curso, apunta a la última lección ("Repasar curso").
+  continueLessonId: string | null;
+  courseCompleted: boolean;
 }
 
 // Formas mínimas de la respuesta anidada de Supabase — solo los campos que
@@ -50,6 +86,16 @@ interface CourseDetailRow {
     order: number;
     lessons: { id: string; title: string; order: number }[];
   }[];
+}
+
+interface UnitDetailRow {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  course_id: string;
+  course: { title: string } | null;
+  lessons: { id: string; title: string; order: number; estimated_minutes: number | null }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -75,7 +121,7 @@ export class CoursesService {
     }));
   }
 
-  async getCourse(id: string): Promise<CourseWithUnits | null> {
+  async getCourse(id: string, userId: string | null): Promise<CourseWithUnits | null> {
     const { data, error } = await this.supabase
       .from('courses')
       .select(
@@ -89,13 +135,152 @@ export class CoursesService {
     if (!data) return null;
 
     const course = data as CourseDetailRow;
-    const units = [...course.units]
+    const sortedUnits = [...course.units]
       .sort((a, b) => a.order - b.order)
-      .map((unit) => ({
-        ...unit,
-        lessons: [...unit.lessons].sort((a, b) => a.order - b.order),
-      }));
+      .map((unit) => ({ ...unit, lessons: [...unit.lessons].sort((a, b) => a.order - b.order) }));
 
-    return { id: course.id, title: course.title, description: course.description, units };
+    const completedLessonIds = userId
+      ? await this.loadCompletedLessonIds(userId, sortedUnits.flatMap((u) => u.lessons.map((l) => l.id)))
+      : new Set<string>();
+
+    let totalLessons = 0;
+    let completedLessons = 0;
+    let continueLessonId: string | null = null;
+    let lastLessonId: string | null = null;
+
+    const units: CourseUnit[] = sortedUnits.map((unit) => {
+      const lessons: CourseLesson[] = unit.lessons.map((lesson) => {
+        const completed = completedLessonIds.has(lesson.id);
+        totalLessons += 1;
+        if (completed) completedLessons += 1;
+        lastLessonId = lesson.id;
+        if (!completed && continueLessonId === null) continueLessonId = lesson.id;
+        return { id: lesson.id, title: lesson.title, order: lesson.order, completed };
+      });
+
+      const status: UnitStatus =
+        lessons.length === 0
+          ? 'pending'
+          : lessons.every((l) => l.completed)
+            ? 'completed'
+            : lessons.some((l) => l.completed)
+              ? 'in_progress'
+              : 'pending';
+
+      return {
+        id: unit.id,
+        title: unit.title,
+        description: unit.description,
+        order: unit.order,
+        lessons,
+        status,
+      };
+    });
+
+    const courseCompleted = totalLessons > 0 && completedLessons === totalLessons;
+
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      units,
+      totalLessons,
+      completedLessons,
+      percent: totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100),
+      continueLessonId: courseCompleted ? lastLessonId : continueLessonId,
+      courseCompleted,
+    };
+  }
+
+  async getUnit(unitId: string, userId: string | null): Promise<UnitDetail | null> {
+    const { data, error } = await this.supabase
+      .from('units')
+      .select(
+        `id, title, description, order, course_id,
+         course:courses ( title ),
+         lessons ( id, title, order, estimated_minutes )`,
+      )
+      .eq('id', unitId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    const row = data as unknown as UnitDetailRow;
+    const sortedLessons = [...row.lessons].sort((a, b) => a.order - b.order);
+
+    const completedLessonIds = userId
+      ? await this.loadCompletedLessonIds(userId, sortedLessons.map((l) => l.id))
+      : new Set<string>();
+
+    let currentAssigned = false;
+    let completedCount = 0;
+    let totalMinutes: number | null = null;
+
+    const lessons: UnitLesson[] = sortedLessons.map((lesson) => {
+      const completed = completedLessonIds.has(lesson.id);
+      if (completed) completedCount += 1;
+      if (lesson.estimated_minutes !== null) {
+        totalMinutes = (totalMinutes ?? 0) + lesson.estimated_minutes;
+      }
+
+      let state: LessonState;
+      if (completed) {
+        state = 'completed';
+      } else if (!currentAssigned) {
+        state = 'current';
+        currentAssigned = true;
+      } else {
+        state = 'pending';
+      }
+
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        order: lesson.order,
+        estimatedMinutes: lesson.estimated_minutes,
+        completed,
+        state,
+      };
+    });
+
+    const totalCount = lessons.length;
+    const status: UnitStatus =
+      totalCount === 0
+        ? 'pending'
+        : completedCount === totalCount
+          ? 'completed'
+          : completedCount > 0
+            ? 'in_progress'
+            : 'pending';
+
+    return {
+      id: row.id,
+      courseId: row.course_id,
+      courseTitle: row.course?.title ?? '',
+      title: row.title,
+      description: row.description,
+      order: row.order,
+      status,
+      lessons,
+      completedCount,
+      totalCount,
+      totalMinutes,
+    };
+  }
+
+  private async loadCompletedLessonIds(userId: string, lessonIds: string[]): Promise<Set<string>> {
+    if (lessonIds.length === 0) return new Set();
+
+    const { data, error } = await this.supabase
+      .from('lesson_progress')
+      .select('lesson_id')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .in('lesson_id', lessonIds);
+
+    if (error) throw error;
+
+    return new Set((data ?? []).map((row) => row['lesson_id'] as string));
   }
 }

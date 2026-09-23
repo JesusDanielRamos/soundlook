@@ -19,6 +19,11 @@
   --sl-color-accent: var(--sl-blue-300);
   --sl-color-border: #dbe6fb;
 
+  /* Fondo del "lienzo" detrás del header/sidebar/tarjetas — un tono más
+     oscuro que --sl-color-bg en modo oscuro, para dar sensación de
+     profundidad (tarjetas "flotando" sobre el lienzo). En claro son iguales. */
+  --sl-page-bg: var(--sl-color-bg);
+
   /* Gradients + elevation, built from the brand blues */
   --sl-gradient-hero: linear-gradient(135deg, #ffffff 0%, #eff6ff 45%, #dbeafe 100%);
   --sl-gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
@@ -41,6 +46,30 @@
   font-size: 1rem;
 }
 
+/* Modo oscuro: Taiga UI marca body[tuiTheme="dark"] cuando el toggle del
+   header (o el sistema, la primera vez) lo activa. Como header, sidebar,
+   tarjetas, formularios, etc. usan estos mismos tokens --sl-color-*,
+   redefinirlos aquí re-tematiza toda la app sin tocar cada componente.
+   Jerarquía de profundidad: --sl-page-bg (el lienzo, más oscuro) <
+   --sl-color-bg (header/sidebar/tarjetas) < --sl-color-surface (hover,
+   fondos de badges, barras de progreso — más clara, para que "resalte"). */
+body[tuiTheme='dark'] {
+  --sl-page-bg: #0b1220;
+  --sl-color-bg: #111827;
+  --sl-color-surface: #1e293b;
+  --sl-color-text: #e2e8f0;
+  --sl-color-text-muted: #94a3b8;
+  --sl-color-primary: #3b82f6;
+  --sl-color-primary-hover: #60a5fa;
+  --sl-color-primary-contrast: #ffffff;
+  --sl-color-accent: #60a5fa;
+  --sl-color-border: #2d3a4f;
+
+  --sl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sl-shadow-md: 0 10px 24px rgba(0, 0, 0, 0.4);
+  --sl-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
 html,
 body {
   margin: 0;
@@ -53,7 +82,8 @@ body {
     'Segoe UI',
     sans-serif;
   color: var(--sl-color-text);
-  background: var(--sl-color-bg);
+  background: var(--sl-page-bg);
+  transition: background-color 0.2s ease;
 }
 
 /* Shared button utilities (used across header, home, auth screens) */

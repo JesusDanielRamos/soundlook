@@ -1,0 +1,83 @@
+@if (loading()) {
+  <p class="unit-detail-state">Cargando unidad…</p>
+} @else if (error()) {
+  <p class="unit-detail-state unit-detail-state--error">{{ error() }}</p>
+} @else if (unit(); as unit) {
+  <nav class="unit-detail__breadcrumb" aria-label="Ruta">
+    <a [routerLink]="['/courses', unit.courseId]">{{ unit.courseTitle }}</a>
+    <span aria-hidden="true">›</span>
+    <span>Unidad {{ unit.order }}: {{ unit.title }}</span>
+  </nav>
+
+  <header class="unit-detail__card">
+    <h1>Unidad {{ unit.order }}: {{ unit.title }}</h1>
+
+    @if (unit.description) {
+      <p class="unit-detail__desc">{{ unit.description }}</p>
+    }
+
+    <div class="unit-detail__badges">
+      <span class="course-badge">{{ unit.totalCount }} lección{{ unit.totalCount === 1 ? '' : 'es' }}</span>
+      @if (unit.totalMinutes !== null) {
+        <span class="course-badge">~{{ unit.totalMinutes }} min estimados</span>
+      }
+      <span class="course-badge" [class]="'course-badge--' + unit.status">
+        @switch (unit.status) {
+          @case ('completed') {
+            ✓ Completa
+          }
+          @case ('in_progress') {
+            ▶ En curso
+          }
+          @default {
+            ○ Pendiente
+          }
+        }
+      </span>
+    </div>
+
+    <p class="unit-detail__progress-label">
+      {{ unit.completedCount }} de {{ unit.totalCount }} lecciones completadas
+    </p>
+    <div class="progress-bar">
+      <div class="progress-bar__fill" [style.width.%]="percent()"></div>
+    </div>
+  </header>
+
+  <h2 class="unit-detail__lessons-title">Lecciones de la unidad</h2>
+
+  <div class="unit-lessons">
+    @for (lesson of unit.lessons; track lesson.id) {
+      <a [routerLink]="['/lessons', lesson.id]" class="unit-lesson" [class]="'unit-lesson--' + lesson.state">
+        <span class="unit-lesson__marker" aria-hidden="true">
+          {{ lesson.state === 'completed' ? '✓' : lesson.order }}
+        </span>
+
+        <span class="unit-lesson__body">
+          <span class="unit-lesson__title">{{ lesson.title }}</span>
+          @if (lesson.estimatedMinutes !== null) {
+            <span class="unit-lesson__time">⏱ {{ lesson.estimatedMinutes }} min</span>
+          }
+        </span>
+
+        <span class="unit-lesson__status">
+          @switch (lesson.state) {
+            @case ('completed') {
+              ✓ Completa
+            }
+            @case ('current') {
+              ▶ Actual
+            }
+            @default {
+              ○ Pendiente
+            }
+          }
+        </span>
+      </a>
+    } @empty {
+      <p class="unit-detail-state">Todavía no hay lecciones en esta unidad.</p>
+    }
+  </div>
+} @else {
+  <p class="unit-detail-state">No encontramos esta unidad.</p>
+}

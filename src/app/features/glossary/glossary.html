@@ -145,14 +145,17 @@
 
         <label class="glossary-field">
           <span>Categoría (opcional)</span>
-          <input
-            type="text"
+          <select
             name="category"
-            placeholder="Por ejemplo: Fundamentos, Procesamiento…"
             [ngModel]="newCategory()"
             (ngModelChange)="newCategory.set($event)"
             [disabled]="saving()"
-          />
+          >
+            <option [ngValue]="null">Sin categoría</option>
+            @for (category of glossaryCategories; track category) {
+              <option [ngValue]="category">{{ category }}</option>
+            }
+          </select>
         </label>
 
         <label class="glossary-field">

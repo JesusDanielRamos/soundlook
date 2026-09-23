@@ -5,35 +5,84 @@
 } @else if (error()) {
   <p class="course-detail-state course-detail-state--error">{{ error() }}</p>
 } @else if (course(); as course) {
-  <header class="course-detail__header">
-    <h1>{{ course.title }}</h1>
-    @if (course.description) {
-      <p>{{ course.description }}</p>
-    }
-  </header>
+  <div class="course-detail__banner" aria-hidden="true">🎧</div>
 
-  @for (unit of course.units; track unit.id) {
-    <section class="course-unit">
-      <h2>{{ unit.title }}</h2>
-      @if (unit.description) {
-        <p class="course-unit__desc">{{ unit.description }}</p>
-      }
+  <div class="course-detail__layout">
+    <div class="course-detail__main">
+      <header class="course-detail__header">
+        <h1>{{ course.title }}</h1>
 
-      @if (unit.lessons.length) {
-        <ul class="course-unit__lessons">
-          @for (lesson of unit.lessons; track lesson.id) {
-            <li>
-              <a [routerLink]="['/lessons', lesson.id]">{{ lesson.title }}</a>
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="course-unit__empty">Todavía no hay lecciones en esta unidad.</p>
+        <div class="course-detail__badges">
+          <span class="course-badge">{{ course.units.length }} unidades</span>
+          <span class="course-badge">{{ course.totalLessons }} lecciones</span>
+        </div>
+
+        @if (course.description) {
+          <p>{{ course.description }}</p>
+        }
+      </header>
+
+      <hr class="course-detail__divider" />
+
+      <h2 class="course-detail__units-title">Listado de unidades</h2>
+
+      @for (unit of course.units; track unit.id) {
+        <a
+          [routerLink]="['/courses', course.id, 'units', unit.id]"
+          class="course-unit"
+          [class]="'course-unit--' + unit.status"
+        >
+          <div class="course-unit__heading">
+            <h3>{{ unit.title }}</h3>
+            <p>{{ unit.lessons.length }} lección{{ unit.lessons.length === 1 ? '' : 'es' }}</p>
+          </div>
+
+          <span class="course-unit__status">
+            @switch (unit.status) {
+              @case ('completed') {
+                ✓ Completa
+              }
+              @case ('in_progress') {
+                ▶ En curso
+              }
+              @default {
+                ○ Pendiente
+              }
+            }
+          </span>
+        </a>
+      } @empty {
+        <p class="course-detail-state">Este curso todavía no tiene unidades publicadas.</p>
       }
-    </section>
-  } @empty {
-    <p class="course-detail-state">Este curso todavía no tiene unidades publicadas.</p>
-  }
+    </div>
+
+    <aside class="course-progress-card">
+      <h2>Tu progreso</h2>
+      <hr />
+
+      <p class="course-progress-card__percent">{{ course.percent }}% completado</p>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" [style.width.%]="course.percent"></div>
+      </div>
+
+      <div class="course-progress-card__stats">
+        <div class="course-progress-stat">
+          <strong>{{ course.completedLessons }}</strong>
+          <span>completadas</span>
+        </div>
+        <div class="course-progress-stat">
+          <strong>{{ course.totalLessons - course.completedLessons }}</strong>
+          <span>pendientes</span>
+        </div>
+      </div>
+
+      @if (course.continueLessonId) {
+        <a [routerLink]="['/lessons', course.continueLessonId]" class="sl-btn sl-btn--primary course-progress-card__cta">
+          {{ continueLabel() }}
+        </a>
+      }
+    </aside>
+  </div>
 } @else {
   <p class="course-detail-state">No encontramos este curso.</p>
 }

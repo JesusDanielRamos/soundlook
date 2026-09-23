@@ -5,6 +5,20 @@ import { SupabaseClientService } from '../../core/services/supabase-client.servi
 
 const BUCKET = 'glossary-media';
 
+// Categorías predefinidas ofrecidas al crear un término — un catálogo fijo
+// evita duplicados por typos ("Efecto" vs "Efectos") en el filtro lateral.
+export const GLOSSARY_CATEGORIES: readonly string[] = [
+  'Efectos',
+  'Procesamiento',
+  'Fundamentos',
+  'Hardware',
+  'Herramientas',
+  'Producción',
+  'Técnico',
+  'Software',
+  'Otros',
+];
+
 export interface GlossaryTerm {
   id: string;
   term: string;

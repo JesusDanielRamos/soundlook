@@ -1,1 +1,94 @@
-<p>progress — próximamente</p>
+<section class="progress-page__header">
+  <h1>Mi avance</h1>
+  <p>Tu progreso a través de los cursos, unidad por unidad.</p>
+</section>
+
+@if (loading()) {
+  <p class="progress-state">Cargando tu avance…</p>
+} @else if (error()) {
+  <p class="progress-state progress-state--error">{{ error() }}</p>
+} @else if (overview(); as overview) {
+  <section class="progress-stats">
+    <article class="stat-card">
+      <span class="stat-card__label">Progreso general</span>
+      <strong class="stat-card__value">{{ overview.percent }}%</strong>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" [style.width.%]="overview.percent"></div>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-card__label">Lecciones completadas</span>
+      <strong class="stat-card__value">{{ overview.completedLessons }}/{{ overview.totalLessons }}</strong>
+      <span class="stat-card__hint">de {{ overview.totalLessons }} lecciones</span>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-card__label">Tiempo invertido</span>
+      <strong class="stat-card__value">{{ overview.totalMinutes }}</strong>
+      <span class="stat-card__hint">minutos estimados</span>
+    </article>
+  </section>
+
+  <section class="progress-section">
+    <h2>Avance por curso</h2>
+
+    @for (course of overview.courses; track course.id) {
+      <article class="progress-course">
+        <div class="progress-course__head">
+          <div>
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.completedCount }} de {{ course.totalCount }} lecciones completadas</p>
+          </div>
+          <span class="course-badge">{{ course.percent }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" [style.width.%]="course.percent"></div>
+        </div>
+
+        <div class="progress-course__units">
+          @for (unit of course.units; track unit.id) {
+            <a [routerLink]="['/courses', course.id, 'units', unit.id]" class="progress-unit-row">
+              <span class="progress-unit-row__title">{{ unit.title }}</span>
+              <div class="progress-bar progress-bar--sm">
+                <div class="progress-bar__fill" [style.width.%]="unit.percent"></div>
+              </div>
+              <span class="progress-unit-row__count">{{ unit.completedCount }}/{{ unit.totalCount }}</span>
+            </a>
+          }
+        </div>
+      </article>
+    } @empty {
+      <p class="progress-state">Todavía no hay cursos publicados.</p>
+    }
+  </section>
+
+  <section class="progress-section">
+    <h2>Historial de actividad</h2>
+
+    @if (timelineGroups().length) {
+      <div class="progress-timeline">
+        @for (group of timelineGroups(); track group.label) {
+          <div class="progress-timeline__group">
+            <h3 class="progress-timeline__date">{{ group.label }}</h3>
+
+            <div class="progress-timeline__entries">
+              @for (entry of group.entries; track entry.lessonId) {
+                <div class="timeline-entry">
+                  <span class="timeline-entry__dot" aria-hidden="true"></span>
+                  <div class="timeline-entry__body">
+                    <span class="timeline-entry__title">{{ entry.lessonTitle }}</span>
+                    <span class="timeline-entry__meta">{{ entry.courseTitle }} · {{ entry.unitTitle }}</span>
+                  </div>
+                  <span class="timeline-entry__time">{{ formatTime(entry.completedAt) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="progress-state">Aún no has completado ninguna lección.</p>
+    }
+  </section>
+}

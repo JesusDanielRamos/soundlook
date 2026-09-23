@@ -1,1 +1,243 @@
-<p>lesson-detail — próximamente</p>
+@if (loading()) {
+  <p class="lesson-state">Cargando lección…</p>
+} @else if (error()) {
+  <p class="lesson-state lesson-state--error">{{ error() }}</p>
+} @else if (lesson(); as lesson) {
+  <div class="lesson-detail__topbar">
+    <nav class="lesson-detail__breadcrumb" aria-label="Ruta">
+      <a [routerLink]="['/courses', lesson.courseId, 'units', lesson.unitId]">U{{ lesson.unitOrder }}</a>
+      <span aria-hidden="true">›</span>
+      <span>{{ lesson.title }}</span>
+    </nav>
+
+    @if (lesson.totalInUnit > 0) {
+      <span class="course-badge">Lección {{ lesson.positionInUnit }} de {{ lesson.totalInUnit }}</span>
+    }
+  </div>
+
+  <div class="lesson-detail__layout">
+    <div class="lesson-detail__main">
+      <header class="lesson-detail__header">
+        <h1>{{ lesson.title }}</h1>
+        @if (lesson.contentHtml) {
+          <p class="lesson-detail__lead" [innerHTML]="lesson.contentHtml"></p>
+        }
+      </header>
+
+      @if (videoEmbed(); as embed) {
+        <div class="lesson-video">
+          @if (embed.kind === 'iframe') {
+            <iframe [src]="embed.safeSrc" title="Video de la lección" allowfullscreen loading="lazy"></iframe>
+          } @else {
+            <video [src]="embed.src" controls preload="metadata"></video>
+          }
+        </div>
+        <p class="lesson-video__hint">→ video con subtítulos activados (si el proveedor los ofrece)</p>
+      }
+
+      <div class="lesson-complete">
+        @if (lesson.completed) {
+          <span class="lesson-complete__done">✓ Lección completada</span>
+        } @else {
+          <button type="button" class="sl-btn sl-btn--primary" [disabled]="marking()" (click)="markCompleted()">
+            {{ marking() ? 'Guardando…' : 'Marcar como completada' }}
+          </button>
+        }
+        @if (markError(); as markErrorMessage) {
+          <p class="lesson-complete__error" role="alert">{{ markErrorMessage }}</p>
+        }
+      </div>
+
+      @if (lesson.sections.length || canManage()) {
+        <hr class="lesson-detail__divider" />
+        <div class="lesson-detail__section-header">
+          <h2 class="lesson-detail__section-title">Contenido de la lección</h2>
+          @if (canManage() && sectionFormOpenFor() === null) {
+            <button type="button" class="sl-btn sl-btn--outline" (click)="startNewSection()">+ Agregar sección</button>
+          }
+        </div>
+
+        <div class="lesson-accordion">
+          @for (section of lesson.sections; track section.id; let i = $index) {
+            <div class="accordion-item" [class.is-expanded]="isSectionExpanded(section.id)">
+              <button
+                type="button"
+                class="accordion-item__toggle"
+                (click)="toggleSection(section.id)"
+                [attr.aria-expanded]="isSectionExpanded(section.id)"
+              >
+                <span class="accordion-item__marker" aria-hidden="true">{{ i + 1 }}</span>
+                <span class="accordion-item__title">{{ section.title }}</span>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+
+              @if (isSectionExpanded(section.id)) {
+                <div class="accordion-item__content">
+                  <p>{{ section.content }}</p>
+
+                  @if (section.imageUrl) {
+                    <div class="accordion-item__image">
+                      <img [src]="section.imageUrl" [alt]="section.title" />
+                    </div>
+                  }
+
+                  @if (canManage()) {
+                    <div class="accordion-item__manage">
+                      <button type="button" class="link-btn" (click)="startEditSection(section)">Editar</button>
+                      <button type="button" class="link-btn link-btn--danger" (click)="deleteSection(section)">
+                        Eliminar
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <aside class="lesson-sidebar">
+      @if (lesson.visualImageUrl || lesson.visualLinkUrl) {
+        <div class="lesson-sidebar__card">
+          <h2>Recurso visual</h2>
+          <hr />
+
+          @if (lesson.visualImageUrl) {
+            <div class="lesson-visual__image">
+              <img [src]="lesson.visualImageUrl" [alt]="lesson.title" />
+            </div>
+          }
+
+          @if (lesson.visualLinkUrl) {
+            <a [href]="lesson.visualLinkUrl" target="_blank" rel="noopener noreferrer" class="lesson-sidebar__link">
+              Ver interactivo →
+            </a>
+          }
+        </div>
+      }
+
+      @if (lesson.quiz; as quiz) {
+        <div class="lesson-sidebar__card">
+          <h2>Quiz</h2>
+          <hr />
+          <p class="lesson-sidebar__quiz-title">{{ quiz.title }}</p>
+          <a [routerLink]="['/quizzes', quiz.id]" class="sl-btn sl-btn--primary lesson-sidebar__quiz-cta">
+            Tomar el quiz
+          </a>
+        </div>
+      }
+
+      <div class="lesson-sidebar__card">
+        <h2>Navegación</h2>
+        <hr />
+
+        <div class="lesson-nav">
+          @if (lesson.previousLessonId) {
+            <a [routerLink]="['/lessons', lesson.previousLessonId]" class="sl-btn sl-btn--ghost">← Anterior</a>
+          } @else {
+            <span class="sl-btn sl-btn--ghost is-disabled">← Anterior</span>
+          }
+
+          @if (lesson.nextLessonId) {
+            <a [routerLink]="['/lessons', lesson.nextLessonId]" class="sl-btn sl-btn--primary">Siguiente →</a>
+          } @else {
+            <span class="sl-btn sl-btn--primary is-disabled">Siguiente →</span>
+          }
+        </div>
+      </div>
+    </aside>
+  </div>
+} @else {
+  <p class="lesson-state">No encontramos esta lección.</p>
+}
+
+@if (sectionFormOpenFor(); as target) {
+  <div class="section-modal-backdrop" (click)="cancelSectionForm()">
+    <div
+      class="section-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="section-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="section-modal-title">{{ target === 'new' ? 'Agregar sección' : 'Editar sección' }}</h2>
+
+      <form #sectionForm="ngForm" (ngSubmit)="saveSectionForm(sectionForm)" novalidate>
+        <label class="section-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="title"
+            required
+            [ngModel]="sectionTitle()"
+            (ngModelChange)="sectionTitle.set($event)"
+            [disabled]="sectionSaving()"
+          />
+        </label>
+
+        <label class="section-field">
+          <span>Contenido</span>
+          <textarea
+            name="content"
+            rows="4"
+            required
+            [ngModel]="sectionContent()"
+            (ngModelChange)="sectionContent.set($event)"
+            [disabled]="sectionSaving()"
+          ></textarea>
+        </label>
+
+        @if (editingSection(); as current) {
+          @if (current.imageUrl) {
+            <div class="section-form__current-image">
+              <img [src]="current.imageUrl" alt="" />
+              <label class="section-form__remove-image">
+                <input
+                  type="checkbox"
+                  name="removeImage"
+                  [ngModel]="removeSectionImage()"
+                  (ngModelChange)="removeSectionImage.set($event)"
+                  [disabled]="sectionSaving()"
+                />
+                Quitar imagen actual
+              </label>
+            </div>
+          }
+        }
+
+        <label class="section-field">
+          <span>{{ editingSection()?.imageUrl ? 'Reemplazar imagen (opcional)' : 'Imagen (opcional)' }}</span>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            (change)="onSectionImageSelected($event)"
+            [disabled]="sectionSaving()"
+          />
+        </label>
+
+        @if (sectionFormError(); as sectionError) {
+          <p class="section-form__error" role="alert">{{ sectionError }}</p>
+        }
+
+        <div class="section-form__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="sectionSaving()">
+            {{ sectionSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="sectionSaving()" (click)="cancelSectionForm()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

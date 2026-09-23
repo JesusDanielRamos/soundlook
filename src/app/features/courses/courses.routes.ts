@@ -9,4 +9,8 @@ export const COURSES_ROUTES: Routes = [
     path: ':id',
     loadComponent: () => import('./course-detail/course-detail').then((m) => m.CourseDetail),
   },
+  {
+    path: ':id/units/:unitId',
+    loadComponent: () => import('./unit-detail/unit-detail').then((m) => m.UnitDetail),
+  },
 ];
