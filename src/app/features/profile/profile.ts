@@ -18,7 +18,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 export class Profile {
   private readonly auth = inject(AuthService);
 
-  protected readonly semesters = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  protected readonly semesters = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   readonly profile = this.auth.profile;
   readonly email = computed(() => this.auth.session()?.user.email ?? '');

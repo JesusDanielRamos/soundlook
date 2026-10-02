@@ -164,6 +164,7 @@
             @for (semester of semesters; track semester) {
               <option [ngValue]="semester">{{ semester }}º semestre</option>
             }
+            <option [ngValue]="'other'">Otro</option>
           </select>
         </label>
 

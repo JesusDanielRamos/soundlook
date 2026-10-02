@@ -10,12 +10,7 @@ de audio de forma <br> <span style="font-style: italic;"> accesible e interactiv
       </p>
 
       <div class="hero__actions">
-        @if (isAuthenticated()) {
-          <a routerLink="/dashboard" class="sl-btn sl-btn--primary sl-btn--lg">Ir a mi panel</a>
-        } @else {
-          <a routerLink="/auth/register" class="sl-btn sl-btn--primary sl-btn--lg">Comenzar ahora</a>
-         
-        }
+        <a routerLink="/auth/register" class="sl-btn sl-btn--primary sl-btn--lg">Comenzar ahora</a>
         <a routerLink="/courses" class="hero__link">Ver cursos disponibles →</a>
       </div>
     </div>

@@ -28,7 +28,9 @@ export class Register implements OnDestroy {
   // pero además alimentan los computed de fortaleza/coincidencia de abajo.
   protected readonly fullName = signal('');
   protected readonly email = signal('');
-  protected readonly semester = signal<number | null>(null);
+  // 'other' es un valor distinto de null a propósito: si "Otro" guardara
+  // null, el validador required del <select> lo trataría como "sin elegir".
+  protected readonly semester = signal<number | 'other' | null>(null);
   protected readonly disabilityDescription = signal('');
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
@@ -104,9 +106,11 @@ export class Register implements OnDestroy {
 
     this.loading.set(true);
 
+    const semesterValue = this.semester();
+
     try {
       await this.auth.signUp(email, this.password(), fullName, {
-        semester: this.semester(),
+        semester: typeof semesterValue === 'number' ? semesterValue : null,
         hasDisability: this.hasDisability(),
         disabilityDescription: this.hasDisability() ? this.disabilityDescription().trim() : null,
       });
