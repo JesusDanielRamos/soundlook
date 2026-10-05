@@ -38,6 +38,11 @@ export interface GlossaryTermInput {
   imageFile: File | null;
 }
 
+export interface GlossaryTermUpdateInput extends GlossaryTermInput {
+  // Si es true y no se manda imageFile nuevo, se quita la imagen existente.
+  removeImage: boolean;
+}
+
 interface GlossaryTermRow {
   id: string;
   term: string;
@@ -89,6 +94,39 @@ export class GlossaryService {
     if (error) throw error;
 
     return this.toGlossaryTerm(data as GlossaryTermRow);
+  }
+
+  async updateTerm(id: string, input: GlossaryTermUpdateInput): Promise<GlossaryTerm> {
+    const updates: Record<string, unknown> = {
+      term: input.term,
+      definition: input.definition,
+      category: input.category,
+      video_url: input.videoUrl,
+      status: input.status,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (input.imageFile) {
+      updates['image_path'] = await this.uploadImage(input.imageFile);
+    } else if (input.removeImage) {
+      updates['image_path'] = null;
+    }
+
+    const { data, error } = await this.supabase
+      .from('glossary_terms')
+      .update(updates)
+      .eq('id', id)
+      .select('id, term, definition, category, image_path, video_url, status')
+      .single();
+
+    if (error) throw error;
+
+    return this.toGlossaryTerm(data as GlossaryTermRow);
+  }
+
+  async deleteTerm(id: string): Promise<void> {
+    const { error } = await this.supabase.from('glossary_terms').delete().eq('id', id);
+    if (error) throw error;
   }
 
   private async uploadImage(file: File): Promise<string> {

@@ -55,8 +55,8 @@ export class Glossary {
     });
   });
 
-  // --- Modal "Agregar término" (solo docente/administrador) ---
-  readonly modalOpen = signal(false);
+  // --- Modal "Agregar/Editar término" (solo docente/administrador) ---
+  readonly modalTarget = signal<'new' | string | null>(null);
   readonly saving = signal(false);
   readonly formError = signal<string | null>(null);
 
@@ -68,6 +68,15 @@ export class Glossary {
   protected readonly newVideoUrl = signal('');
   protected readonly newStatus = signal<ContentStatus>('published');
   protected readonly newImageFile = signal<File | null>(null);
+  protected readonly removeImage = signal(false);
+
+  // El término que se está editando (null si el modal está en modo "nuevo"
+  // o cerrado) — se usa para mostrar su imagen actual en el modal.
+  readonly editingTerm = computed(() => {
+    const target = this.modalTarget();
+    if (!target || target === 'new') return null;
+    return this.terms().find((t) => t.id === target) ?? null;
+  });
 
   constructor() {
     void this.loadTerms();
@@ -101,13 +110,26 @@ export class Glossary {
     this.newVideoUrl.set('');
     this.newStatus.set('published');
     this.newImageFile.set(null);
+    this.removeImage.set(false);
     this.formError.set(null);
-    this.modalOpen.set(true);
+    this.modalTarget.set('new');
+  }
+
+  startEdit(term: GlossaryTerm): void {
+    this.newTerm.set(term.term);
+    this.newDefinition.set(term.definition);
+    this.newCategory.set(term.category);
+    this.newVideoUrl.set(term.videoUrl ?? '');
+    this.newStatus.set(term.status);
+    this.newImageFile.set(null);
+    this.removeImage.set(false);
+    this.formError.set(null);
+    this.modalTarget.set(term.id);
   }
 
   closeModal(): void {
     if (this.saving()) return;
-    this.modalOpen.set(false);
+    this.modalTarget.set(null);
   }
 
   onImageSelected(event: Event): void {
@@ -116,29 +138,80 @@ export class Glossary {
   }
 
   async onSubmit(form: NgForm): Promise<void> {
-    if (form.invalid || this.saving()) return;
+    const target = this.modalTarget();
+    if (form.invalid || target === null || this.saving()) return;
 
     this.saving.set(true);
     this.formError.set(null);
 
     try {
-      const created = await this.glossaryService.createTerm({
-        term: this.newTerm().trim(),
-        definition: this.newDefinition().trim(),
-        category: this.newCategory(),
-        videoUrl: this.newVideoUrl().trim() || null,
-        status: this.newStatus(),
-        imageFile: this.newImageFile(),
-      });
+      if (target === 'new') {
+        const created = await this.glossaryService.createTerm({
+          term: this.newTerm().trim(),
+          definition: this.newDefinition().trim(),
+          category: this.newCategory(),
+          videoUrl: this.newVideoUrl().trim() || null,
+          status: this.newStatus(),
+          imageFile: this.newImageFile(),
+        });
 
-      this.terms.update((current) =>
-        [...current, created].sort((a, b) => a.term.localeCompare(b.term)),
-      );
-      this.modalOpen.set(false);
+        this.terms.update((current) => [...current, created].sort((a, b) => a.term.localeCompare(b.term)));
+      } else {
+        const updated = await this.glossaryService.updateTerm(target, {
+          term: this.newTerm().trim(),
+          definition: this.newDefinition().trim(),
+          category: this.newCategory(),
+          videoUrl: this.newVideoUrl().trim() || null,
+          status: this.newStatus(),
+          imageFile: this.newImageFile(),
+          removeImage: this.removeImage(),
+        });
+
+        this.terms.update((current) =>
+          current.map((t) => (t.id === target ? updated : t)).sort((a, b) => a.term.localeCompare(b.term)),
+        );
+      }
+
+      this.modalTarget.set(null);
     } catch {
       this.formError.set('No se pudo guardar el término. Intenta de nuevo.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  // --- Confirmación de borrado (modal propio en vez de confirm() nativo) ---
+  readonly pendingDeleteTerm = signal<GlossaryTerm | null>(null);
+  readonly deleting = signal(false);
+  readonly deleteError = signal<string | null>(null);
+
+  requestDelete(term: GlossaryTerm): void {
+    if (this.saving()) return;
+    this.deleteError.set(null);
+    this.pendingDeleteTerm.set(term);
+  }
+
+  cancelDelete(): void {
+    if (this.deleting()) return;
+    this.pendingDeleteTerm.set(null);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const term = this.pendingDeleteTerm();
+    if (!term || this.deleting()) return;
+
+    this.deleting.set(true);
+    this.deleteError.set(null);
+
+    try {
+      await this.glossaryService.deleteTerm(term.id);
+      this.terms.update((current) => current.filter((t) => t.id !== term.id));
+      if (this.expandedId() === term.id) this.expandedId.set(null);
+      this.pendingDeleteTerm.set(null);
+    } catch {
+      this.deleteError.set('No se pudo eliminar el término. Intenta de nuevo.');
+    } finally {
+      this.deleting.set(false);
     }
   }
 }

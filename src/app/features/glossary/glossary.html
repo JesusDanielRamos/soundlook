@@ -95,6 +95,15 @@
                       Ver video relacionado ↗
                     </a>
                   }
+
+                  @if (canManage()) {
+                    <div class="glossary-card__manage">
+                      <button type="button" class="link-btn" (click)="startEdit(term)">Editar</button>
+                      <button type="button" class="link-btn link-btn--danger" (click)="requestDelete(term)">
+                        Eliminar
+                      </button>
+                    </div>
+                  }
                 </div>
               }
             </article>
@@ -107,7 +116,7 @@
   }
 </section>
 
-@if (modalOpen()) {
+@if (modalTarget(); as target) {
   <div class="glossary-modal-backdrop" (click)="closeModal()">
     <div
       class="glossary-modal"
@@ -116,7 +125,7 @@
       aria-labelledby="glossary-modal-title"
       (click)="$event.stopPropagation()"
     >
-      <h2 id="glossary-modal-title">Agregar término al glosario</h2>
+      <h2 id="glossary-modal-title">{{ target === 'new' ? 'Agregar término al glosario' : 'Editar término' }}</h2>
 
       <form #termForm="ngForm" (ngSubmit)="onSubmit(termForm)" novalidate>
         <label class="glossary-field">
@@ -158,8 +167,24 @@
           </select>
         </label>
 
+        @if (editingTerm(); as current) {
+          @if (current.imageUrl && !removeImage()) {
+            <div class="glossary-modal__current-image">
+              <img [src]="current.imageUrl" alt="" />
+              <label class="glossary-modal__remove-image">
+                <input
+                  type="checkbox"
+                  [checked]="removeImage()"
+                  (change)="removeImage.set($any($event.target).checked)"
+                />
+                Quitar imagen actual
+              </label>
+            </div>
+          }
+        }
+
         <label class="glossary-field">
-          <span>Imagen (opcional)</span>
+          <span>{{ editingTerm()?.imageUrl ? 'Reemplazar imagen (opcional)' : 'Imagen (opcional)' }}</span>
           <input type="file" name="image" accept="image/*" (change)="onImageSelected($event)" [disabled]="saving()" />
         </label>
 
@@ -201,6 +226,37 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteTerm(); as term) {
+  <div class="confirm-modal-backdrop" (click)="cancelDelete()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-title">Eliminar término</h2>
+      <p>
+        ¿Seguro que quieres eliminar <strong>"{{ term.term }}"</strong> del glosario? Esta acción no se puede
+        deshacer.
+      </p>
+
+      @if (deleteError(); as deleteErrorMessage) {
+        <p class="confirm-modal__error" role="alert">{{ deleteErrorMessage }}</p>
+      }
+
+      <div class="confirm-modal__actions">
+        <button type="button" class="sl-btn sl-btn--danger" [disabled]="deleting()" (click)="confirmDelete()">
+          {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="deleting()" (click)="cancelDelete()">
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 }

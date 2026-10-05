@@ -138,6 +138,15 @@ body {
   font-size: 1rem;
 }
 
+.sl-btn--danger {
+  background: #dc2626;
+  color: #ffffff;
+
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
