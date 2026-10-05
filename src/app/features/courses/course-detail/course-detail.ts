@@ -20,9 +20,21 @@ export class CourseDetail {
   readonly error = signal<string | null>(null);
   readonly course = signal<CourseWithUnits | null>(null);
 
+  readonly canManage = computed(() => {
+    const role = this.auth.profile()?.role;
+    return role === 'docente' || role === 'administrador';
+  });
+
   readonly continueLabel = computed(() =>
     this.course()?.courseCompleted ? 'Repasar curso →' : 'Continuar curso →',
   );
+
+  // --- Modal "Editar portada", solo docente/administrador ---
+  readonly imageModalOpen = signal(false);
+  readonly imageSaving = signal(false);
+  readonly imageError = signal<string | null>(null);
+  protected readonly newImageFile = signal<File | null>(null);
+  protected readonly removeImage = signal(false);
 
   // Angular reutiliza esta misma instancia del componente al navegar entre
   // /courses/:id — hay que escuchar paramMap en vez de leer el snapshot una
@@ -35,6 +47,45 @@ export class CourseDetail {
     effect(() => {
       void this.loadCourse(this.courseId());
     });
+  }
+
+  openImageModal(): void {
+    this.newImageFile.set(null);
+    this.removeImage.set(false);
+    this.imageError.set(null);
+    this.imageModalOpen.set(true);
+  }
+
+  closeImageModal(): void {
+    if (this.imageSaving()) return;
+    this.imageModalOpen.set(false);
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.newImageFile.set(input.files?.[0] ?? null);
+  }
+
+  async saveImage(): Promise<void> {
+    const course = this.course();
+    if (!course || this.imageSaving()) return;
+
+    this.imageSaving.set(true);
+    this.imageError.set(null);
+
+    try {
+      const imageUrl = await this.coursesService.updateCourseImage(
+        course.id,
+        this.newImageFile(),
+        this.removeImage(),
+      );
+      this.course.update((current) => (current ? { ...current, imageUrl } : current));
+      this.imageModalOpen.set(false);
+    } catch {
+      this.imageError.set('No se pudo actualizar la portada. Intenta de nuevo.');
+    } finally {
+      this.imageSaving.set(false);
+    }
   }
 
   private async loadCourse(id: string | null): Promise<void> {

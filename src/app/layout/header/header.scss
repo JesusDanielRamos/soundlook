@@ -32,6 +32,9 @@
 
 .app-header__logo {
   flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 /* Center nav (desktop): absolutely centered in the header bar, independent of

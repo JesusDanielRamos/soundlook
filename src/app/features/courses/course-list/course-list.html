@@ -12,7 +12,13 @@
     <div class="courses-grid">
       @for (course of courses(); track course.id) {
         <article class="course-tile">
-          <div class="course-tile__thumb" aria-hidden="true">🎧</div>
+          <div class="course-tile__thumb" aria-hidden="true">
+            @if (course.imageUrl) {
+              <img [src]="course.imageUrl" alt="" />
+            } @else {
+              <span>🎧</span>
+            }
+          </div>
           <div class="course-tile__body">
             <h2>{{ course.title }}</h2>
             @if (course.description) {

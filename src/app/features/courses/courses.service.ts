@@ -1,12 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseClientService } from '../../core/services/supabase-client.service';
 
+const COURSE_MEDIA_BUCKET = 'course-media';
+
 export interface CourseListItem {
   id: string;
   title: string;
   description: string | null;
   unitsCount: number;
   lessonsCount: number;
+  imageUrl: string | null;
 }
 
 export type UnitStatus = 'completed' | 'in_progress' | 'pending';
@@ -56,6 +59,7 @@ export interface CourseWithUnits {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   units: CourseUnit[];
   totalLessons: number;
   completedLessons: number;
@@ -72,6 +76,7 @@ interface CourseListRow {
   id: string;
   title: string;
   description: string | null;
+  image_path: string | null;
   units: { id: string; lessons: { id: string }[] }[];
 }
 
@@ -79,6 +84,7 @@ interface CourseDetailRow {
   id: string;
   title: string;
   description: string | null;
+  image_path: string | null;
   units: {
     id: string;
     title: string;
@@ -107,7 +113,7 @@ export class CoursesService {
   async listCourses(): Promise<CourseListItem[]> {
     const { data, error } = await this.supabase
       .from('courses')
-      .select('id, title, description, units ( id, lessons ( id ) )')
+      .select('id, title, description, image_path, units ( id, lessons ( id ) )')
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -116,6 +122,7 @@ export class CoursesService {
       id: course.id,
       title: course.title,
       description: course.description,
+      imageUrl: this.resolveMediaUrl(course.image_path),
       unitsCount: course.units.length,
       lessonsCount: course.units.reduce((sum, unit) => sum + unit.lessons.length, 0),
     }));
@@ -125,7 +132,7 @@ export class CoursesService {
     const { data, error } = await this.supabase
       .from('courses')
       .select(
-        `id, title, description,
+        `id, title, description, image_path,
          units ( id, title, description, order, lessons ( id, title, order ) )`,
       )
       .eq('id', id)
@@ -183,6 +190,7 @@ export class CoursesService {
       id: course.id,
       title: course.title,
       description: course.description,
+      imageUrl: this.resolveMediaUrl(course.image_path),
       units,
       totalLessons,
       completedLessons,
@@ -267,6 +275,40 @@ export class CoursesService {
       totalCount,
       totalMinutes,
     };
+  }
+
+  async updateCourseImage(courseId: string, file: File | null, removeImage: boolean): Promise<string | null> {
+    const imagePath = file ? await this.uploadCourseMedia(file) : removeImage ? null : undefined;
+    if (imagePath === undefined) return this.resolveMediaUrl(null);
+
+    const { data, error } = await this.supabase
+      .from('courses')
+      .update({ image_path: imagePath, updated_at: new Date().toISOString() })
+      .eq('id', courseId)
+      .select('image_path')
+      .single();
+
+    if (error) throw error;
+
+    return this.resolveMediaUrl((data as { image_path: string | null }).image_path);
+  }
+
+  private async uploadCourseMedia(file: File): Promise<string> {
+    const extension = file.name.split('.').pop() ?? 'jpg';
+    const path = `${crypto.randomUUID()}.${extension}`;
+
+    const { error } = await this.supabase.storage.from(COURSE_MEDIA_BUCKET).upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (error) throw error;
+
+    return path;
+  }
+
+  private resolveMediaUrl(path: string | null): string | null {
+    return path ? this.supabase.storage.from(COURSE_MEDIA_BUCKET).getPublicUrl(path).data.publicUrl : null;
   }
 
   private async loadCompletedLessonIds(userId: string, lessonIds: string[]): Promise<Set<string>> {

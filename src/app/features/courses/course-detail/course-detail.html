@@ -5,7 +5,17 @@
 } @else if (error()) {
   <p class="course-detail-state course-detail-state--error">{{ error() }}</p>
 } @else if (course(); as course) {
-  <div class="course-detail__banner" aria-hidden="true">🎧</div>
+  <div class="course-detail__banner">
+    @if (course.imageUrl) {
+      <img [src]="course.imageUrl" [alt]="course.title" />
+    } @else {
+      <span aria-hidden="true">🎧</span>
+    }
+
+    @if (canManage()) {
+      <button type="button" class="course-detail__banner-edit" (click)="openImageModal()">Editar portada</button>
+    }
+  </div>
 
   <div class="course-detail__layout">
     <div class="course-detail__main">
@@ -85,4 +95,48 @@
   </div>
 } @else {
   <p class="course-detail-state">No encontramos este curso.</p>
+}
+
+@if (imageModalOpen()) {
+  <div class="image-modal-backdrop" (click)="closeImageModal()">
+    <div
+      class="image-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="course-image-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="course-image-modal-title">Editar portada del curso</h2>
+
+      @if (course(); as course) {
+        @if (course.imageUrl && !removeImage()) {
+          <div class="image-modal__current">
+            <img [src]="course.imageUrl" alt="" />
+            <label class="image-modal__remove">
+              <input type="checkbox" [checked]="removeImage()" (change)="removeImage.set($any($event.target).checked)" />
+              Quitar portada actual
+            </label>
+          </div>
+        }
+      }
+
+      <label class="image-modal__field">
+        <span>Nueva imagen</span>
+        <input type="file" accept="image/*" (change)="onImageSelected($event)" [disabled]="imageSaving()" />
+      </label>
+
+      @if (imageError(); as err) {
+        <p class="image-modal__error" role="alert">{{ err }}</p>
+      }
+
+      <div class="image-modal__actions">
+        <button type="button" class="sl-btn sl-btn--primary" [disabled]="imageSaving()" (click)="saveImage()">
+          {{ imageSaving() ? 'Guardando…' : 'Guardar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="imageSaving()" (click)="closeImageModal()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
 }
