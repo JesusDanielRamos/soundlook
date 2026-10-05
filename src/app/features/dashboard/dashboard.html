@@ -29,7 +29,13 @@
 
     @for (course of courses(); track course.id) {
       <article class="course-card">
-        <div class="course-card__thumb" aria-hidden="true"></div>
+        <div class="course-card__thumb" aria-hidden="true">
+          @if (course.imageUrl) {
+            <img [src]="course.imageUrl" alt="" />
+          } @else {
+            <span>🎧</span>
+          }
+        </div>
         <div class="course-card__body">
           <h3>{{ course.title }}</h3>
           <p class="course-card__meta">{{ course.unitsCount }} unidades · {{ course.lessonsCount }} lecciones</p>

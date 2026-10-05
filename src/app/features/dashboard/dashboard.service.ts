@@ -1,10 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseClientService } from '../../core/services/supabase-client.service';
 
+const COURSE_MEDIA_BUCKET = 'course-media';
+
 export interface CourseProgress {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   unitsCount: number;
   lessonsCount: number;
   completedCount: number;
@@ -24,6 +27,7 @@ interface CourseRow {
   id: string;
   title: string;
   description: string | null;
+  image_path: string | null;
   units: { id: string; lessons: { id: string }[] }[];
 }
 
@@ -41,7 +45,7 @@ export class DashboardService {
   async loadCourseProgress(userId: string): Promise<CourseProgress[]> {
     const [coursesResult, progressResult] = await Promise.all([
       this.supabase.from('courses').select(`
-        id, title, description,
+        id, title, description, image_path,
         units ( id, lessons ( id ) )
       `),
       this.supabase.from('lesson_progress').select('lesson_id').eq('user_id', userId).eq('status', 'completed'),
@@ -62,6 +66,9 @@ export class DashboardService {
         id: course.id,
         title: course.title,
         description: course.description,
+        imageUrl: course.image_path
+          ? this.supabase.storage.from(COURSE_MEDIA_BUCKET).getPublicUrl(course.image_path).data.publicUrl
+          : null,
         unitsCount: course.units.length,
         lessonsCount: lessonIds.length,
         completedCount,
