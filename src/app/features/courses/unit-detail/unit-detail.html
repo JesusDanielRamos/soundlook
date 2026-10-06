@@ -78,6 +78,86 @@
       <p class="unit-detail-state">Todavía no hay lecciones en esta unidad.</p>
     }
   </div>
+
+  @if (unit.interactiveTitle || canManage()) {
+    <section class="unit-interactive">
+      <div class="unit-interactive__header">
+        <div>
+          <h2>{{ unit.interactiveTitle || 'Ejemplo interactivo' }}</h2>
+          @if (unit.interactiveDescription) {
+            <p class="unit-detail__desc">{{ unit.interactiveDescription }}</p>
+          }
+        </div>
+
+        @if (canManage()) {
+          <button type="button" class="sl-btn sl-btn--outline" (click)="openInteractiveEdit()">
+            {{ unit.interactiveTitle ? 'Editar ejemplo' : '+ Agregar ejemplo interactivo' }}
+          </button>
+        }
+      </div>
+
+      @if (unit.interactiveTitle) {
+        <app-decibel-meter />
+      }
+    </section>
+  }
 } @else {
   <p class="unit-detail-state">No encontramos esta unidad.</p>
+}
+
+@if (interactiveFormOpen() && unit(); as currentUnit) {
+  <div class="unit-modal-backdrop" (click)="cancelInteractiveEdit()">
+    <div
+      class="unit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="interactive-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="interactive-modal-title">Ejemplo interactivo de la unidad</h2>
+
+      <form #interactiveForm="ngForm" (ngSubmit)="saveInteractiveForm(interactiveForm)" novalidate>
+        <label class="unit-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="interactiveTitle"
+            required
+            [ngModel]="interactiveTitle()"
+            (ngModelChange)="interactiveTitle.set($event)"
+            [disabled]="interactiveSaving()"
+          />
+        </label>
+
+        <label class="unit-field">
+          <span>Descripción (opcional)</span>
+          <textarea
+            name="interactiveDescription"
+            rows="3"
+            [ngModel]="interactiveDescription()"
+            (ngModelChange)="interactiveDescription.set($event)"
+            [disabled]="interactiveSaving()"
+          ></textarea>
+        </label>
+
+        @if (interactiveFormError(); as interactiveError) {
+          <p class="unit-field__error" role="alert">{{ interactiveError }}</p>
+        }
+
+        <div class="unit-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="interactiveSaving()">
+            {{ interactiveSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button
+            type="button"
+            class="sl-btn sl-btn--ghost"
+            [disabled]="interactiveSaving()"
+            (click)="cancelInteractiveEdit()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 }

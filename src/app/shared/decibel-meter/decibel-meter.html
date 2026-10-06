@@ -1,0 +1,58 @@
+<div class="db-meter">
+  <div class="db-meter__tabs" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="db-meter__tab"
+      [class.is-active]="mode() === 'auto'"
+      [attr.aria-selected]="mode() === 'auto'"
+      (click)="setMode('auto')"
+    >
+      Simulación automática
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="db-meter__tab"
+      [class.is-active]="mode() === 'manual'"
+      [attr.aria-selected]="mode() === 'manual'"
+      (click)="setMode('manual')"
+    >
+      Mover manualmente
+    </button>
+  </div>
+
+  <div class="db-meter__scale" role="img" [attr.aria-label]="'Medidor de decibeles: ' + zoneLabel()">
+    <div class="db-meter__track">
+      <div
+        class="db-meter__fill"
+        [class]="'db-meter__fill--' + zone()"
+        [class.db-meter__fill--instant]="mode() === 'manual'"
+        [style.width.%]="percent()"
+      ></div>
+    </div>
+    <div class="db-meter__ticks" aria-hidden="true">
+      <span>-60 dB</span>
+      <span>-40 dB</span>
+      <span>-24 dB</span>
+      <span>-6 dB</span>
+      <span>0 dB</span>
+    </div>
+  </div>
+
+  @if (mode() === 'manual') {
+    <input
+      type="range"
+      class="db-meter__slider"
+      [min]="minDb"
+      [max]="manualMaxDb"
+      step="1"
+      aria-label="Mover el nivel de decibeles manualmente"
+      [value]="db()"
+      (input)="onManualInput($event)"
+    />
+  }
+
+  <p class="db-meter__value">{{ db() | number: '1.0-0' }} dB</p>
+  <p class="db-meter__label" [class]="'db-meter__label--' + zone()">{{ zoneLabel() }}</p>
+</div>

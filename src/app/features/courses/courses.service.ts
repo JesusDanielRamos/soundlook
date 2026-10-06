@@ -53,6 +53,13 @@ export interface UnitDetail {
   completedCount: number;
   totalCount: number;
   totalMinutes: number | null;
+  interactiveTitle: string | null;
+  interactiveDescription: string | null;
+}
+
+export interface UnitInteractiveInput {
+  title: string;
+  description: string | null;
 }
 
 export interface CourseWithUnits {
@@ -100,6 +107,8 @@ interface UnitDetailRow {
   description: string | null;
   order: number;
   course_id: string;
+  interactive_title: string | null;
+  interactive_description: string | null;
   course: { title: string } | null;
   lessons: { id: string; title: string; order: number; estimated_minutes: number | null }[];
 }
@@ -204,7 +213,7 @@ export class CoursesService {
     const { data, error } = await this.supabase
       .from('units')
       .select(
-        `id, title, description, order, course_id,
+        `id, title, description, order, course_id, interactive_title, interactive_description,
          course:courses ( title ),
          lessons ( id, title, order, estimated_minutes )`,
       )
@@ -274,7 +283,21 @@ export class CoursesService {
       completedCount,
       totalCount,
       totalMinutes,
+      interactiveTitle: row.interactive_title,
+      interactiveDescription: row.interactive_description,
     };
+  }
+
+  async updateUnitInteractive(unitId: string, input: UnitInteractiveInput): Promise<void> {
+    const { error } = await this.supabase
+      .from('units')
+      .update({
+        interactive_title: input.title,
+        interactive_description: input.description,
+      })
+      .eq('id', unitId);
+
+    if (error) throw error;
   }
 
   async updateCourseImage(courseId: string, file: File | null, removeImage: boolean): Promise<string | null> {

@@ -231,3 +231,94 @@
     margin-left: calc(2.25rem + 1rem);
   }
 }
+
+.unit-interactive {
+  margin-top: 2rem;
+}
+
+.unit-interactive__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.0625rem;
+    color: var(--sl-color-text);
+  }
+
+  .sl-btn {
+    flex: none;
+  }
+}
+
+/* --- Modal "Editar ejemplo interactivo", solo docente/administrador --- */
+.unit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(11, 18, 32, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.unit-modal {
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--sl-color-bg);
+  border-radius: 14px;
+  box-shadow: var(--sl-shadow-lg);
+  padding: 1.75rem;
+
+  h2 {
+    margin: 0 0 1.25rem;
+    color: var(--sl-blue-900);
+    font-size: 1.25rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.unit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--sl-color-text-muted);
+
+  input,
+  textarea {
+    font: inherit;
+    padding: 0.55rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--sl-color-border);
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+
+    &:focus-visible {
+      outline: 2px solid var(--sl-color-primary);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.unit-field__error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+}
+
+.unit-field__actions {
+  display: flex;
+  gap: 0.75rem;
+}

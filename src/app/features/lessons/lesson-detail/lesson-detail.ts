@@ -6,6 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LessonDetail as LessonDetailModel, LessonSection, LessonsService } from '../lessons.service';
+import type { LessonUpdateInput } from '../lessons.service';
 import { toVideoEmbed } from '../video-embed';
 
 @Component({
@@ -50,6 +51,19 @@ export class LessonDetail {
     if (!target || target === 'new') return null;
     return this.lesson()?.sections.find((s) => s.id === target) ?? null;
   });
+
+  // --- Edición de la lección (título, lead, video, recurso visual) ---
+  readonly lessonFormOpen = signal(false);
+  readonly lessonSaving = signal(false);
+  readonly lessonFormError = signal<string | null>(null);
+
+  protected readonly lessonTitle = signal('');
+  protected readonly lessonContentHtml = signal('');
+  protected readonly lessonVideoUrl = signal('');
+  protected readonly lessonEstimatedMinutes = signal<number | null>(null);
+  protected readonly lessonVisualLinkUrl = signal('');
+  protected readonly lessonVisualImageFile = signal<File | null>(null);
+  protected readonly removeVisualImage = signal(false);
 
   readonly videoEmbed = computed(() => {
     const url = this.lesson()?.videoUrl;
@@ -106,6 +120,59 @@ export class LessonDetail {
       this.markError.set('No pudimos guardar tu progreso. Intenta de nuevo.');
     } finally {
       this.marking.set(false);
+    }
+  }
+
+  openLessonEdit(): void {
+    const lesson = this.lesson();
+    if (!lesson) return;
+
+    this.lessonTitle.set(lesson.title);
+    this.lessonContentHtml.set(lesson.contentHtml ?? '');
+    this.lessonVideoUrl.set(lesson.videoUrl ?? '');
+    this.lessonEstimatedMinutes.set(lesson.estimatedMinutes);
+    this.lessonVisualLinkUrl.set(lesson.visualLinkUrl ?? '');
+    this.lessonVisualImageFile.set(null);
+    this.removeVisualImage.set(false);
+    this.lessonFormError.set(null);
+    this.lessonFormOpen.set(true);
+  }
+
+  cancelLessonEdit(): void {
+    if (this.lessonSaving()) return;
+    this.lessonFormOpen.set(false);
+  }
+
+  onLessonVisualImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.lessonVisualImageFile.set(input.files?.[0] ?? null);
+  }
+
+  async saveLessonForm(form: NgForm): Promise<void> {
+    const lesson = this.lesson();
+    if (form.invalid || !lesson || this.lessonSaving()) return;
+
+    this.lessonSaving.set(true);
+    this.lessonFormError.set(null);
+
+    try {
+      const input: LessonUpdateInput = {
+        title: this.lessonTitle().trim(),
+        contentHtml: this.lessonContentHtml().trim() || null,
+        videoUrl: this.lessonVideoUrl().trim() || null,
+        visualLinkUrl: this.lessonVisualLinkUrl().trim() || null,
+        estimatedMinutes: this.lessonEstimatedMinutes(),
+        visualImageFile: this.lessonVisualImageFile(),
+        removeVisualImage: this.removeVisualImage(),
+      };
+
+      await this.lessonsService.updateLesson(lesson.id, input);
+      await this.loadLesson(lesson.id);
+      this.lessonFormOpen.set(false);
+    } catch {
+      this.lessonFormError.set('No se pudo guardar la lección. Intenta de nuevo.');
+    } finally {
+      this.lessonSaving.set(false);
     }
   }
 

@@ -67,6 +67,22 @@
   }
 }
 
+.lesson-detail__heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h1 {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sl-btn {
+    flex: none;
+  }
+}
+
 .lesson-detail__lead {
   margin: 0 0 1.25rem;
   color: var(--sl-color-text-muted);

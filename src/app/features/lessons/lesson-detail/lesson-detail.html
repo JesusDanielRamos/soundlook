@@ -18,7 +18,12 @@
   <div class="lesson-detail__layout">
     <div class="lesson-detail__main">
       <header class="lesson-detail__header">
-        <h1>{{ lesson.title }}</h1>
+        <div class="lesson-detail__heading-row">
+          <h1>{{ lesson.title }}</h1>
+          @if (canManage()) {
+            <button type="button" class="sl-btn sl-btn--outline" (click)="openLessonEdit()">Editar lección</button>
+          }
+        </div>
         @if (lesson.contentHtml) {
           <p class="lesson-detail__lead" [innerHTML]="lesson.contentHtml"></p>
         }
@@ -158,6 +163,121 @@
   </div>
 } @else {
   <p class="lesson-state">No encontramos esta lección.</p>
+}
+
+@if (lessonFormOpen() && lesson(); as currentLesson) {
+  <div class="section-modal-backdrop" (click)="cancelLessonEdit()">
+    <div
+      class="section-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lesson-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="lesson-modal-title">Editar lección</h2>
+
+      <form #lessonForm="ngForm" (ngSubmit)="saveLessonForm(lessonForm)" novalidate>
+        <label class="section-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="lessonTitle"
+            required
+            [ngModel]="lessonTitle()"
+            (ngModelChange)="lessonTitle.set($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        <label class="section-field">
+          <span>Texto introductorio (opcional)</span>
+          <textarea
+            name="lessonContentHtml"
+            rows="3"
+            [ngModel]="lessonContentHtml()"
+            (ngModelChange)="lessonContentHtml.set($event)"
+            [disabled]="lessonSaving()"
+          ></textarea>
+        </label>
+
+        <label class="section-field">
+          <span>Link de video (opcional)</span>
+          <input
+            type="url"
+            name="lessonVideoUrl"
+            placeholder="https://…"
+            [ngModel]="lessonVideoUrl()"
+            (ngModelChange)="lessonVideoUrl.set($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        <label class="section-field">
+          <span>Duración estimada en minutos (opcional)</span>
+          <input
+            type="number"
+            name="lessonEstimatedMinutes"
+            min="0"
+            [ngModel]="lessonEstimatedMinutes()"
+            (ngModelChange)="lessonEstimatedMinutes.set($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        <label class="section-field">
+          <span>Link del recurso interactivo (opcional)</span>
+          <input
+            type="url"
+            name="lessonVisualLinkUrl"
+            placeholder="https://…"
+            [ngModel]="lessonVisualLinkUrl()"
+            (ngModelChange)="lessonVisualLinkUrl.set($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        @if (currentLesson.visualImageUrl && !removeVisualImage()) {
+          <div class="section-form__current-image">
+            <img [src]="currentLesson.visualImageUrl" alt="" />
+            <label class="section-form__remove-image">
+              <input
+                type="checkbox"
+                name="removeVisualImage"
+                [ngModel]="removeVisualImage()"
+                (ngModelChange)="removeVisualImage.set($event)"
+                [disabled]="lessonSaving()"
+              />
+              Quitar imagen actual
+            </label>
+          </div>
+        }
+
+        <label class="section-field">
+          <span>{{ currentLesson.visualImageUrl ? 'Reemplazar imagen del recurso visual (opcional)' : 'Imagen del recurso visual (opcional)' }}</span>
+          <input
+            type="file"
+            name="lessonVisualImage"
+            accept="image/*"
+            (change)="onLessonVisualImageSelected($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        @if (lessonFormError(); as lessonError) {
+          <p class="section-form__error" role="alert">{{ lessonError }}</p>
+        }
+
+        <div class="section-form__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="lessonSaving()">
+            {{ lessonSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="lessonSaving()" (click)="cancelLessonEdit()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 }
 
 @if (sectionFormOpenFor(); as target) {

@@ -20,6 +20,17 @@ export interface LessonSectionInput {
   removeImage?: boolean;
 }
 
+export interface LessonUpdateInput {
+  title: string;
+  contentHtml: string | null;
+  videoUrl: string | null;
+  visualLinkUrl: string | null;
+  estimatedMinutes: number | null;
+  visualImageFile: File | null;
+  // Si es true y no se manda visualImageFile nuevo, se quita la imagen existente.
+  removeVisualImage?: boolean;
+}
+
 export interface LessonQuiz {
   id: string;
   title: string;
@@ -208,9 +219,33 @@ export class LessonsService {
     if (error) throw error;
   }
 
+  async updateLesson(lessonId: string, input: LessonUpdateInput): Promise<void> {
+    const updates: Record<string, unknown> = {
+      title: input.title,
+      content_html: input.contentHtml,
+      video_url: input.videoUrl,
+      visual_link_url: input.visualLinkUrl,
+      estimated_minutes: input.estimatedMinutes,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (input.visualImageFile) {
+      updates['visual_image_path'] = await this.uploadMedia(input.visualImageFile, 'visuals');
+    } else if (input.removeVisualImage) {
+      updates['visual_image_path'] = null;
+    }
+
+    const { error } = await this.supabase.from('lessons').update(updates).eq('id', lessonId);
+    if (error) throw error;
+  }
+
   private async uploadSectionImage(file: File): Promise<string> {
+    return this.uploadMedia(file, 'sections');
+  }
+
+  private async uploadMedia(file: File, folder: string): Promise<string> {
     const extension = file.name.split('.').pop() ?? 'jpg';
-    const path = `sections/${crypto.randomUUID()}.${extension}`;
+    const path = `${folder}/${crypto.randomUUID()}.${extension}`;
 
     const { error } = await this.supabase.storage.from(LESSON_MEDIA_BUCKET).upload(path, file, {
       cacheControl: '3600',
