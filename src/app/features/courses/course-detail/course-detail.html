@@ -34,7 +34,12 @@
 
       <hr class="course-detail__divider" />
 
-      <h2 class="course-detail__units-title">Listado de unidades</h2>
+      <div class="course-detail__units-header">
+        <h2 class="course-detail__units-title">Listado de unidades</h2>
+        @if (canManage()) {
+          <button type="button" class="sl-btn sl-btn--outline" (click)="openNewUnitForm()">+ Agregar unidad</button>
+        }
+      </div>
 
       @for (unit of course.units; track unit.id) {
         <a
@@ -42,6 +47,8 @@
           class="course-unit"
           [class]="'course-unit--' + unit.status"
         >
+          <span class="course-unit__marker" aria-hidden="true">{{ unit.order }}</span>
+
           <div class="course-unit__heading">
             <h3>{{ unit.title }}</h3>
             <p>{{ unit.lessons.length }} lección{{ unit.lessons.length === 1 ? '' : 'es' }}</p>
@@ -60,6 +67,43 @@
               }
             }
           </span>
+
+          @if (canManage()) {
+            <span class="course-unit__manage">
+              <button
+                type="button"
+                class="course-unit__icon-btn"
+                aria-label="Editar título de la unidad"
+                (click)="$event.preventDefault(); $event.stopPropagation(); openEditUnitForm(unit)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="course-unit__icon-btn course-unit__icon-btn--danger"
+                aria-label="Eliminar unidad"
+                (click)="$event.preventDefault(); $event.stopPropagation(); requestDeleteUnit(unit)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </span>
+          }
         </a>
       } @empty {
         <p class="course-detail-state">Este curso todavía no tiene unidades publicadas.</p>
@@ -134,6 +178,89 @@
           {{ imageSaving() ? 'Guardando…' : 'Guardar' }}
         </button>
         <button type="button" class="sl-btn sl-btn--ghost" [disabled]="imageSaving()" (click)="closeImageModal()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (unitFormOpenFor(); as unitTarget) {
+  <div class="unit-modal-backdrop" (click)="cancelUnitForm()">
+    <div
+      class="unit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="unit-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="unit-modal-title">{{ unitTarget === 'new' ? 'Agregar unidad' : 'Editar unidad' }}</h2>
+
+      <form #unitForm="ngForm" (ngSubmit)="saveUnitForm(unitForm)" novalidate>
+        <label class="unit-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="unitTitle"
+            required
+            [ngModel]="newUnitTitle()"
+            (ngModelChange)="newUnitTitle.set($event)"
+            [disabled]="unitSaving()"
+          />
+        </label>
+
+        <label class="unit-field">
+          <span>Descripción (opcional)</span>
+          <textarea
+            name="unitDescription"
+            rows="3"
+            [ngModel]="newUnitDescription()"
+            (ngModelChange)="newUnitDescription.set($event)"
+            [disabled]="unitSaving()"
+          ></textarea>
+        </label>
+
+        @if (unitFormError(); as unitError) {
+          <p class="unit-field__error" role="alert">{{ unitError }}</p>
+        }
+
+        <div class="unit-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="unitSaving()">
+            {{ unitSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="unitSaving()" (click)="cancelUnitForm()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteUnit(); as unit) {
+  <div class="confirm-modal-backdrop" (click)="cancelDeleteUnit()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-unit-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-unit-title">Eliminar unidad</h2>
+      <p>
+        ¿Seguro que quieres eliminar <strong>"{{ unit.title }}"</strong>? Se eliminarán también todas sus lecciones.
+        Esta acción no se puede deshacer.
+      </p>
+
+      @if (deleteUnitError(); as deleteError) {
+        <p class="unit-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="unit-field__actions">
+        <button type="button" class="sl-btn sl-btn--danger" [disabled]="deletingUnit()" (click)="confirmDeleteUnit()">
+          {{ deletingUnit() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="deletingUnit()" (click)="cancelDeleteUnit()">
           Cancelar
         </button>
       </div>

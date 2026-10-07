@@ -55,6 +55,7 @@ export interface UnitDetail {
   totalMinutes: number | null;
   interactiveTitle: string | null;
   interactiveDescription: string | null;
+  quiz: { id: string; title: string } | null;
 }
 
 export interface UnitInteractiveInput {
@@ -226,9 +227,10 @@ export class CoursesService {
     const row = data as unknown as UnitDetailRow;
     const sortedLessons = [...row.lessons].sort((a, b) => a.order - b.order);
 
-    const completedLessonIds = userId
-      ? await this.loadCompletedLessonIds(userId, sortedLessons.map((l) => l.id))
-      : new Set<string>();
+    const [completedLessonIds, quiz] = await Promise.all([
+      userId ? this.loadCompletedLessonIds(userId, sortedLessons.map((l) => l.id)) : Promise.resolve(new Set<string>()),
+      this.loadUnitQuiz(unitId),
+    ]);
 
     let currentAssigned = false;
     let completedCount = 0;
@@ -285,7 +287,35 @@ export class CoursesService {
       totalMinutes,
       interactiveTitle: row.interactive_title,
       interactiveDescription: row.interactive_description,
+      quiz,
     };
+  }
+
+  async createUnitQuiz(unitId: string, title: string): Promise<{ id: string; title: string }> {
+    const { data, error } = await this.supabase
+      .from('quizzes')
+      .insert({ unit_id: unitId, title, status: 'published' })
+      .select('id, title')
+      .single();
+
+    if (error) throw error;
+    return { id: data['id'] as string, title: data['title'] as string };
+  }
+
+  async deleteUnitQuiz(quizId: string): Promise<void> {
+    const { error } = await this.supabase.from('quizzes').delete().eq('id', quizId);
+    if (error) throw error;
+  }
+
+  private async loadUnitQuiz(unitId: string): Promise<{ id: string; title: string } | null> {
+    const { data, error } = await this.supabase
+      .from('quizzes')
+      .select('id, title')
+      .eq('unit_id', unitId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? { id: data['id'] as string, title: data['title'] as string } : null;
   }
 
   async updateUnitInteractive(unitId: string, input: UnitInteractiveInput): Promise<void> {
@@ -297,6 +327,91 @@ export class CoursesService {
       })
       .eq('id', unitId);
 
+    if (error) throw error;
+  }
+
+  async deleteUnitInteractive(unitId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('units')
+      .update({ interactive_title: null, interactive_description: null })
+      .eq('id', unitId);
+
+    if (error) throw error;
+  }
+
+  async createUnit(
+    courseId: string,
+    nextOrder: number,
+    input: { title: string; description: string | null },
+  ): Promise<CourseUnit> {
+    const { data, error } = await this.supabase
+      .from('units')
+      .insert({
+        course_id: courseId,
+        title: input.title,
+        description: input.description,
+        order: nextOrder,
+        status: 'published',
+      })
+      .select('id, title, description, order')
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data['id'] as string,
+      title: data['title'] as string,
+      description: data['description'] as string | null,
+      order: data['order'] as number,
+      lessons: [],
+      status: 'pending',
+    };
+  }
+
+  async updateUnit(unitId: string, input: { title: string; description: string | null }): Promise<void> {
+    const { error } = await this.supabase
+      .from('units')
+      .update({ title: input.title, description: input.description, updated_at: new Date().toISOString() })
+      .eq('id', unitId);
+
+    if (error) throw error;
+  }
+
+  async deleteUnit(unitId: string): Promise<void> {
+    const { error } = await this.supabase.from('units').delete().eq('id', unitId);
+    if (error) throw error;
+  }
+
+  async createLesson(unitId: string, nextOrder: number, title: string): Promise<UnitLesson> {
+    const { data, error } = await this.supabase
+      .from('lessons')
+      .insert({ unit_id: unitId, title, order: nextOrder, status: 'published' })
+      .select('id, title, order, estimated_minutes')
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data['id'] as string,
+      title: data['title'] as string,
+      order: data['order'] as number,
+      estimatedMinutes: data['estimated_minutes'] as number | null,
+      completed: false,
+      state: 'pending',
+    };
+  }
+
+  async updateLessonTitle(lessonId: string, title: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('lessons')
+      .update({ title, updated_at: new Date().toISOString() })
+      .eq('id', lessonId);
+
+    if (error) throw error;
+  }
+
+  async deleteLesson(lessonId: string): Promise<void> {
+    const { error } = await this.supabase.from('lessons').delete().eq('id', lessonId);
     if (error) throw error;
   }
 

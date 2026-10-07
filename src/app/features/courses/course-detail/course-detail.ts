@@ -1,13 +1,14 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
-import { CourseWithUnits, CoursesService } from '../courses.service';
+import { CourseUnit, CourseWithUnits, CoursesService } from '../courses.service';
 
 @Component({
   selector: 'app-course-detail',
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.scss',
 })
@@ -35,6 +36,18 @@ export class CourseDetail {
   readonly imageError = signal<string | null>(null);
   protected readonly newImageFile = signal<File | null>(null);
   protected readonly removeImage = signal(false);
+
+  // --- Agregar/editar unidad, solo docente/administrador ---
+  readonly unitFormOpenFor = signal<'new' | string | null>(null);
+  readonly unitSaving = signal(false);
+  readonly unitFormError = signal<string | null>(null);
+  protected readonly newUnitTitle = signal('');
+  protected readonly newUnitDescription = signal('');
+
+  // --- Eliminar unidad, solo docente/administrador ---
+  readonly pendingDeleteUnit = signal<CourseUnit | null>(null);
+  readonly deletingUnit = signal(false);
+  readonly deleteUnitError = signal<string | null>(null);
 
   // Angular reutiliza esta misma instancia del componente al navegar entre
   // /courses/:id — hay que escuchar paramMap en vez de leer el snapshot una
@@ -85,6 +98,83 @@ export class CourseDetail {
       this.imageError.set('No se pudo actualizar la portada. Intenta de nuevo.');
     } finally {
       this.imageSaving.set(false);
+    }
+  }
+
+  openNewUnitForm(): void {
+    this.newUnitTitle.set('');
+    this.newUnitDescription.set('');
+    this.unitFormError.set(null);
+    this.unitFormOpenFor.set('new');
+  }
+
+  openEditUnitForm(unit: CourseUnit): void {
+    this.newUnitTitle.set(unit.title);
+    this.newUnitDescription.set(unit.description ?? '');
+    this.unitFormError.set(null);
+    this.unitFormOpenFor.set(unit.id);
+  }
+
+  cancelUnitForm(): void {
+    if (this.unitSaving()) return;
+    this.unitFormOpenFor.set(null);
+  }
+
+  async saveUnitForm(form: NgForm): Promise<void> {
+    const course = this.course();
+    const target = this.unitFormOpenFor();
+    if (form.invalid || !course || target === null || this.unitSaving()) return;
+
+    this.unitSaving.set(true);
+    this.unitFormError.set(null);
+
+    try {
+      const title = this.newUnitTitle().trim();
+      const description = this.newUnitDescription().trim() || null;
+
+      if (target === 'new') {
+        const nextOrder = course.units.reduce((max, u) => Math.max(max, u.order), 0) + 1;
+        await this.coursesService.createUnit(course.id, nextOrder, { title, description });
+      } else {
+        await this.coursesService.updateUnit(target, { title, description });
+      }
+
+      await this.loadCourse(course.id);
+      this.unitFormOpenFor.set(null);
+    } catch {
+      this.unitFormError.set('No se pudo guardar la unidad. Intenta de nuevo.');
+    } finally {
+      this.unitSaving.set(false);
+    }
+  }
+
+  requestDeleteUnit(unit: CourseUnit): void {
+    if (this.deletingUnit()) return;
+    this.deleteUnitError.set(null);
+    this.pendingDeleteUnit.set(unit);
+  }
+
+  cancelDeleteUnit(): void {
+    if (this.deletingUnit()) return;
+    this.pendingDeleteUnit.set(null);
+  }
+
+  async confirmDeleteUnit(): Promise<void> {
+    const unit = this.pendingDeleteUnit();
+    const course = this.course();
+    if (!unit || !course || this.deletingUnit()) return;
+
+    this.deletingUnit.set(true);
+    this.deleteUnitError.set(null);
+
+    try {
+      await this.coursesService.deleteUnit(unit.id);
+      await this.loadCourse(course.id);
+      this.pendingDeleteUnit.set(null);
+    } catch {
+      this.deleteUnitError.set('No se pudo eliminar la unidad. Intenta de nuevo.');
+    } finally {
+      this.deletingUnit.set(false);
     }
   }
 

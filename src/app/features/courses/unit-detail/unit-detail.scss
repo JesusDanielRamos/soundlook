@@ -105,12 +105,20 @@
   transition: width 0.3s ease;
 }
 
-.unit-detail__lessons-title {
-  margin: 0 0 1rem;
-  font-size: 1.0625rem;
-  color: var(--sl-color-text);
+.unit-detail__lessons-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--sl-color-border);
+}
+
+.unit-detail__lessons-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  color: var(--sl-color-text);
 }
 
 .unit-lessons {
@@ -120,13 +128,14 @@
 }
 
 .unit-lesson {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
   background: var(--sl-color-bg);
   border: 1px solid var(--sl-color-border);
   border-radius: 12px;
-  padding: 1rem 1.25rem;
+  padding: 1rem 2.75rem 1rem 1.25rem;
   box-shadow: var(--sl-shadow-sm);
   text-decoration: none;
   color: inherit;
@@ -221,6 +230,47 @@
   }
 }
 
+.unit-lesson__manage {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.unit-lesson__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 0;
+  color: var(--sl-color-text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--sl-color-surface);
+    color: var(--sl-color-primary);
+  }
+
+  &--danger:hover {
+    background: color-mix(in srgb, #b91c1c 10%, transparent);
+    color: #b91c1c;
+  }
+}
+
 @media (max-width: 520px) {
   .unit-lesson {
     flex-wrap: wrap;
@@ -232,11 +282,41 @@
   }
 }
 
-.unit-interactive {
-  margin-top: 2rem;
+.unit-detail__divider {
+  border: none;
+  border-top: 1px solid var(--sl-color-border);
+  margin: 2.5rem 0 0;
 }
 
-.unit-interactive__header {
+.unit-section {
+  margin-top: 1.5rem;
+  background: var(--sl-color-bg);
+  border: 1px solid var(--sl-color-border);
+  border-left: 4px solid var(--sl-color-border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: var(--sl-shadow-sm);
+
+  &--quiz {
+    border-left-color: var(--sl-color-primary);
+  }
+
+  &--interactive {
+    border-left-color: #16a34a;
+  }
+}
+
+.unit-section__eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sl-color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.unit-section__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -251,6 +331,50 @@
 
   .sl-btn {
     flex: none;
+  }
+}
+
+.unit-section__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.unit-section__icon-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.unit-section__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 0;
+  color: var(--sl-color-text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--sl-color-surface);
+    color: var(--sl-color-primary);
+  }
+
+  &--danger:hover {
+    background: color-mix(in srgb, #b91c1c 10%, transparent);
+    color: #b91c1c;
   }
 }
 
@@ -321,4 +445,41 @@
 .unit-field__actions {
   display: flex;
   gap: 0.75rem;
+}
+
+/* --- Modal de confirmación "Eliminar lección" --- */
+.confirm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: rgba(11, 18, 32, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.confirm-modal {
+  width: 100%;
+  max-width: 24rem;
+  background: var(--sl-color-bg);
+  border-radius: 14px;
+  box-shadow: var(--sl-shadow-lg);
+  padding: 1.75rem;
+
+  h2 {
+    margin: 0 0 0.75rem;
+    color: var(--sl-blue-900);
+    font-size: 1.125rem;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: var(--sl-color-text-muted);
+    font-size: 0.9375rem;
+
+    strong {
+      color: var(--sl-color-text);
+    }
+  }
 }

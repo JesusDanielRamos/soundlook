@@ -1,1 +1,375 @@
-<p>quiz-detail — próximamente</p>
+@if (loading()) {
+  <p class="quiz-state">Cargando quiz…</p>
+} @else if (error()) {
+  <p class="quiz-state quiz-state--error">{{ error() }}</p>
+} @else if (quiz(); as quiz) {
+  <nav class="quiz-detail__breadcrumb" aria-label="Ruta">
+    <a [routerLink]="['/courses', quiz.courseId, 'units', quiz.unitId]">{{ quiz.unitTitle }}</a>
+    <span aria-hidden="true">›</span>
+    <span>{{ quiz.title }}</span>
+  </nav>
+
+  <header class="quiz-detail__header">
+    @if (titleEditing()) {
+      <div class="quiz-detail__title-edit">
+        <input
+          type="text"
+          [ngModel]="titleInput()"
+          (ngModelChange)="titleInput.set($event)"
+          [disabled]="titleSaving()"
+        />
+        <button type="button" class="sl-btn sl-btn--primary" [disabled]="titleSaving()" (click)="saveTitle()">
+          {{ titleSaving() ? 'Guardando…' : 'Guardar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="titleSaving()" (click)="cancelEditTitle()">
+          Cancelar
+        </button>
+      </div>
+    } @else {
+      <div class="quiz-detail__heading-row">
+        <h1>{{ quiz.title }}</h1>
+        @if (canManage()) {
+          <button type="button" class="sl-btn sl-btn--outline" (click)="startEditTitle()">Editar título</button>
+        }
+      </div>
+    }
+
+    @if (canManage()) {
+      <a [routerLink]="['/quizzes', quiz.id, 'resultado']" class="sl-btn sl-btn--ghost">Ver calificaciones →</a>
+    }
+  </header>
+
+  @if (canManage()) {
+    <div class="quiz-detail__questions-header">
+      <h2>Preguntas</h2>
+      <button type="button" class="sl-btn sl-btn--outline" (click)="openNewQuestionForm()">+ Agregar pregunta</button>
+    </div>
+
+    <div class="quiz-questions">
+      @for (question of quiz.questions; track question.id; let i = $index) {
+        <article class="quiz-question-card">
+          <div class="quiz-question-card__manage">
+            <button
+              type="button"
+              class="quiz-question-card__icon-btn"
+              aria-label="Editar pregunta"
+              (click)="openEditQuestionForm(question)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="quiz-question-card__icon-btn quiz-question-card__icon-btn--danger"
+              aria-label="Eliminar pregunta"
+              (click)="requestDeleteQuestion(question)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <p class="quiz-question-card__prompt">{{ i + 1 }}. {{ question.prompt }}</p>
+
+          <span class="quiz-question-card__type">
+            @switch (question.type) {
+              @case ('single_choice') {
+                Opción única
+              }
+              @case ('multiple_choice') {
+                Opción múltiple
+              }
+              @case ('true_false') {
+                Verdadero / Falso
+              }
+              @case ('open') {
+                Pregunta abierta
+              }
+            }
+          </span>
+
+          @if (question.type !== 'open') {
+            <ul class="quiz-question-card__answers">
+              @for (answer of question.answers; track answer.id) {
+                <li [class.is-correct]="answer.isCorrect">
+                  {{ answer.isCorrect ? '✓' : '○' }} {{ answer.text }}
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="quiz-question-card__hint">Respuesta libre — no se autocalifica.</p>
+          }
+        </article>
+      } @empty {
+        <p class="quiz-state">Este quiz todavía no tiene preguntas.</p>
+      }
+    </div>
+  } @else {
+    @if (quiz.questions.length === 0) {
+      <p class="quiz-state">Este quiz todavía no tiene preguntas.</p>
+    } @else {
+      <div class="quiz-taking-header">
+        <div>
+          <p class="quiz-taking-header__title">Cuestionario: {{ quiz.title }}</p>
+          <p class="quiz-taking-header__meta">
+            Unidad {{ quiz.unitOrder }} · {{ quiz.questions.length }} pregunta{{
+              quiz.questions.length === 1 ? '' : 's'
+            }}
+          </p>
+        </div>
+        <div class="quiz-taking-header__progress">
+          <span class="quiz-taking-header__progress-label">Progreso</span>
+          <span class="quiz-taking-header__progress-value">
+            {{ currentQuestionIndex() + 1 }} / {{ quiz.questions.length }}
+          </span>
+        </div>
+      </div>
+
+      <p class="quiz-taking__step-label">Pregunta {{ currentQuestionIndex() + 1 }} de {{ quiz.questions.length }}</p>
+      <div class="quiz-taking__bar">
+        <div class="quiz-taking__bar-fill" [style.width.%]="takingProgressPercent()"></div>
+      </div>
+
+      @if (currentQuestion(); as question) {
+        <form class="quiz-taking" (ngSubmit)="isLastQuestion() ? submitQuiz() : goToNextQuestion()">
+          <fieldset class="quiz-taking-question">
+            <legend>
+              <span class="quiz-taking-question__marker" aria-hidden="true">{{ currentQuestionIndex() + 1 }}</span>
+              {{ question.prompt }}
+            </legend>
+
+            @switch (question.type) {
+              @case ('single_choice') {
+                @for (answer of question.answers; track answer.id; let a = $index) {
+                  <label class="quiz-taking-option" [class.is-selected]="isAnswerSelected(question.id, answer.id)">
+                    <span class="quiz-taking-option__letter">{{ answerLetter(a) }}</span>
+                    <input
+                      type="radio"
+                      [name]="'q-' + question.id"
+                      [checked]="isAnswerSelected(question.id, answer.id)"
+                      (change)="selectSingleAnswer(question.id, answer.id)"
+                    />
+                    {{ answer.text }}
+                  </label>
+                }
+              }
+              @case ('true_false') {
+                @for (answer of question.answers; track answer.id; let a = $index) {
+                  <label class="quiz-taking-option" [class.is-selected]="isAnswerSelected(question.id, answer.id)">
+                    <span class="quiz-taking-option__letter">{{ answerLetter(a) }}</span>
+                    <input
+                      type="radio"
+                      [name]="'q-' + question.id"
+                      [checked]="isAnswerSelected(question.id, answer.id)"
+                      (change)="selectSingleAnswer(question.id, answer.id)"
+                    />
+                    {{ answer.text }}
+                  </label>
+                }
+              }
+              @case ('multiple_choice') {
+                @for (answer of question.answers; track answer.id; let a = $index) {
+                  <label class="quiz-taking-option" [class.is-selected]="isAnswerSelected(question.id, answer.id)">
+                    <span class="quiz-taking-option__letter">{{ answerLetter(a) }}</span>
+                    <input
+                      type="checkbox"
+                      [checked]="isAnswerSelected(question.id, answer.id)"
+                      (change)="toggleMultipleAnswer(question.id, answer.id, $any($event.target).checked)"
+                    />
+                    {{ answer.text }}
+                  </label>
+                }
+              }
+              @case ('open') {
+                <textarea
+                  rows="4"
+                  [ngModel]="getAnswerState(question.id).text"
+                  (ngModelChange)="setOpenAnswerText(question.id, $event)"
+                  [name]="'q-' + question.id"
+                ></textarea>
+              }
+            }
+          </fieldset>
+
+          @if (submitError(); as submitErrorMessage) {
+            <p class="quiz-taking__error" role="alert">{{ submitErrorMessage }}</p>
+          }
+
+          <div class="quiz-taking__nav">
+            <button
+              type="button"
+              class="sl-btn sl-btn--outline"
+              [disabled]="currentQuestionIndex() === 0"
+              (click)="goToPreviousQuestion()"
+            >
+              ← Anterior
+            </button>
+            <button type="submit" class="sl-btn sl-btn--primary" [disabled]="submitting()">
+              {{
+                isLastQuestion()
+                  ? submitting()
+                    ? 'Enviando…'
+                    : 'Enviar respuestas'
+                  : 'Confirmar respuesta →'
+              }}
+            </button>
+          </div>
+        </form>
+      }
+    }
+  }
+} @else {
+  <p class="quiz-state">No encontramos este quiz.</p>
+}
+
+@if (questionFormOpenFor(); as questionTarget) {
+  <div class="quiz-modal-backdrop" (click)="cancelQuestionForm()">
+    <div
+      class="quiz-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="question-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="question-modal-title">{{ questionTarget === 'new' ? 'Agregar pregunta' : 'Editar pregunta' }}</h2>
+
+      <form #questionForm="ngForm" (ngSubmit)="saveQuestionForm(questionForm)" novalidate>
+        <label class="quiz-field">
+          <span>Pregunta</span>
+          <textarea
+            name="questionPrompt"
+            rows="2"
+            required
+            [ngModel]="questionPrompt()"
+            (ngModelChange)="questionPrompt.set($event)"
+            [disabled]="questionSaving()"
+          ></textarea>
+        </label>
+
+        <label class="quiz-field">
+          <span>Tipo de pregunta</span>
+          <select
+            name="questionType"
+            [ngModel]="questionType()"
+            (ngModelChange)="onQuestionTypeChange($event)"
+            [disabled]="questionSaving()"
+          >
+            @for (option of questionTypes; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        @if (questionType() !== 'open') {
+          <div class="quiz-field">
+            <span>Opciones de respuesta — marca cuál es correcta</span>
+
+            @for (answer of questionAnswers(); track $index; let i = $index) {
+              <div class="quiz-answer-row">
+                <input
+                  [type]="questionType() === 'multiple_choice' ? 'checkbox' : 'radio'"
+                  name="correctAnswer"
+                  [checked]="answer.isCorrect"
+                  (change)="setAnswerCorrect(i, $any($event.target).checked)"
+                  [disabled]="questionSaving()"
+                />
+                <input
+                  type="text"
+                  [name]="'answerText' + i"
+                  [ngModel]="answer.text"
+                  (ngModelChange)="setAnswerText(i, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Texto de la opción"
+                  [disabled]="questionSaving()"
+                />
+                <button
+                  type="button"
+                  class="quiz-answer-row__remove"
+                  aria-label="Quitar opción"
+                  [disabled]="questionSaving() || questionAnswers().length <= 2"
+                  (click)="removeAnswerRow(i)"
+                >
+                  ×
+                </button>
+              </div>
+            }
+
+            <button type="button" class="sl-btn sl-btn--ghost" [disabled]="questionSaving()" (click)="addAnswerRow()">
+              + Agregar opción
+            </button>
+          </div>
+        }
+
+        @if (questionFormError(); as questionError) {
+          <p class="quiz-field__error" role="alert">{{ questionError }}</p>
+        }
+
+        <div class="quiz-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="questionSaving()">
+            {{ questionSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button
+            type="button"
+            class="sl-btn sl-btn--ghost"
+            [disabled]="questionSaving()"
+            (click)="cancelQuestionForm()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteQuestion(); as question) {
+  <div class="confirm-modal-backdrop" (click)="cancelDeleteQuestion()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-question-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-question-title">Eliminar pregunta</h2>
+      <p>¿Seguro que quieres eliminar esta pregunta? Esta acción no se puede deshacer.</p>
+
+      @if (deleteQuestionError(); as deleteError) {
+        <p class="quiz-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="quiz-field__actions">
+        <button
+          type="button"
+          class="sl-btn sl-btn--danger"
+          [disabled]="deletingQuestion()"
+          (click)="confirmDeleteQuestion()"
+        >
+          {{ deletingQuestion() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button
+          type="button"
+          class="sl-btn sl-btn--ghost"
+          [disabled]="deletingQuestion()"
+          (click)="cancelDeleteQuestion()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}

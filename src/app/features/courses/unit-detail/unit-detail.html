@@ -44,7 +44,12 @@
     </div>
   </header>
 
-  <h2 class="unit-detail__lessons-title">Lecciones de la unidad</h2>
+  <div class="unit-detail__lessons-header">
+    <h2 class="unit-detail__lessons-title">Lecciones de la unidad</h2>
+    @if (canManage()) {
+      <button type="button" class="sl-btn sl-btn--outline" (click)="openNewLessonForm()">+ Agregar lección</button>
+    }
+  </div>
 
   <div class="unit-lessons">
     @for (lesson of unit.lessons; track lesson.id) {
@@ -73,16 +78,110 @@
             }
           }
         </span>
+
+        @if (canManage()) {
+          <span class="unit-lesson__manage">
+            <button
+              type="button"
+              class="unit-lesson__icon-btn"
+              aria-label="Editar nombre de la lección"
+              (click)="$event.preventDefault(); $event.stopPropagation(); openEditLessonForm(lesson)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="unit-lesson__icon-btn unit-lesson__icon-btn--danger"
+              aria-label="Eliminar lección"
+              (click)="$event.preventDefault(); $event.stopPropagation(); requestDeleteLesson(lesson)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </span>
+        }
       </a>
     } @empty {
       <p class="unit-detail-state">Todavía no hay lecciones en esta unidad.</p>
     }
   </div>
 
-  @if (unit.interactiveTitle || canManage()) {
-    <section class="unit-interactive">
-      <div class="unit-interactive__header">
+  @if (unit.quiz || canManage()) {
+    <hr class="unit-detail__divider" />
+
+    <section class="unit-section unit-section--quiz">
+      <div class="unit-section__header">
         <div>
+          <span class="unit-section__eyebrow">Quiz</span>
+          <h2>{{ unit.quiz?.title || 'Quiz de la unidad' }}</h2>
+        </div>
+
+        <div class="unit-section__actions">
+          @if (unit.quiz) {
+            @if (canManage()) {
+              <div class="unit-section__icon-actions">
+                <a [routerLink]="['/quizzes', unit.quiz.id]" class="unit-section__icon-btn" aria-label="Editar quiz">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  class="unit-section__icon-btn unit-section__icon-btn--danger"
+                  aria-label="Eliminar quiz"
+                  (click)="requestDeleteQuiz()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <a [routerLink]="['/quizzes', unit.quiz.id, 'resultado']" class="sl-btn sl-btn--ghost">Ver calificaciones</a>
+            } @else {
+              <a [routerLink]="['/quizzes', unit.quiz.id]" class="sl-btn sl-btn--primary">Tomar quiz</a>
+            }
+          } @else if (canManage()) {
+            <button type="button" class="sl-btn sl-btn--outline" (click)="openQuizForm()">+ Agregar quiz</button>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (unit.interactiveTitle || canManage()) {
+    <hr class="unit-detail__divider" />
+
+    <section class="unit-section unit-section--interactive">
+      <div class="unit-section__header">
+        <div>
+          <span class="unit-section__eyebrow">Ejemplo interactivo</span>
           <h2>{{ unit.interactiveTitle || 'Ejemplo interactivo' }}</h2>
           @if (unit.interactiveDescription) {
             <p class="unit-detail__desc">{{ unit.interactiveDescription }}</p>
@@ -90,9 +189,48 @@
         </div>
 
         @if (canManage()) {
-          <button type="button" class="sl-btn sl-btn--outline" (click)="openInteractiveEdit()">
-            {{ unit.interactiveTitle ? 'Editar ejemplo' : '+ Agregar ejemplo interactivo' }}
-          </button>
+          <div class="unit-section__actions">
+            @if (unit.interactiveTitle) {
+              <div class="unit-section__icon-actions">
+                <button
+                  type="button"
+                  class="unit-section__icon-btn"
+                  aria-label="Editar ejemplo interactivo"
+                  (click)="openInteractiveEdit()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="unit-section__icon-btn unit-section__icon-btn--danger"
+                  aria-label="Eliminar ejemplo interactivo"
+                  (click)="requestDeleteInteractive()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            } @else {
+              <button type="button" class="sl-btn sl-btn--outline" (click)="openInteractiveEdit()">
+                + Agregar ejemplo interactivo
+              </button>
+            }
+          </div>
         }
       </div>
 
@@ -103,6 +241,116 @@
   }
 } @else {
   <p class="unit-detail-state">No encontramos esta unidad.</p>
+}
+
+@if (quizFormOpen()) {
+  <div class="unit-modal-backdrop" (click)="cancelQuizForm()">
+    <div
+      class="unit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quiz-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="quiz-modal-title">Agregar quiz</h2>
+
+      <form #quizForm="ngForm" (ngSubmit)="saveQuizForm(quizForm)" novalidate>
+        <label class="unit-field">
+          <span>Título del quiz</span>
+          <input
+            type="text"
+            name="quizTitle"
+            required
+            [ngModel]="newQuizTitle()"
+            (ngModelChange)="newQuizTitle.set($event)"
+            [disabled]="quizSaving()"
+          />
+        </label>
+
+        @if (quizFormError(); as quizError) {
+          <p class="unit-field__error" role="alert">{{ quizError }}</p>
+        }
+
+        <div class="unit-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="quizSaving()">
+            {{ quizSaving() ? 'Creando…' : 'Crear quiz' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="quizSaving()" (click)="cancelQuizForm()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (deleteQuizConfirmOpen()) {
+  <div class="confirm-modal-backdrop" (click)="cancelDeleteQuiz()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-quiz-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-quiz-title">Eliminar quiz</h2>
+      <p>
+        ¿Seguro que quieres eliminar este quiz? Se eliminarán también sus preguntas y las calificaciones de los
+        alumnos. Esta acción no se puede deshacer.
+      </p>
+
+      @if (deleteQuizError(); as deleteError) {
+        <p class="unit-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="unit-field__actions">
+        <button type="button" class="sl-btn sl-btn--danger" [disabled]="deletingQuiz()" (click)="confirmDeleteQuiz()">
+          {{ deletingQuiz() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="deletingQuiz()" (click)="cancelDeleteQuiz()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (deleteInteractiveConfirmOpen()) {
+  <div class="confirm-modal-backdrop" (click)="cancelDeleteInteractive()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-interactive-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-interactive-title">Eliminar ejemplo interactivo</h2>
+      <p>¿Seguro que quieres eliminar el ejemplo interactivo de esta unidad? Esta acción no se puede deshacer.</p>
+
+      @if (deleteInteractiveError(); as deleteError) {
+        <p class="unit-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="unit-field__actions">
+        <button
+          type="button"
+          class="sl-btn sl-btn--danger"
+          [disabled]="deletingInteractive()"
+          (click)="confirmDeleteInteractive()"
+        >
+          {{ deletingInteractive() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button
+          type="button"
+          class="sl-btn sl-btn--ghost"
+          [disabled]="deletingInteractive()"
+          (click)="cancelDeleteInteractive()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
 }
 
 @if (interactiveFormOpen() && unit(); as currentUnit) {
@@ -158,6 +406,82 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+@if (lessonFormOpenFor(); as lessonTarget) {
+  <div class="unit-modal-backdrop" (click)="cancelLessonForm()">
+    <div
+      class="unit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lesson-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="lesson-modal-title">{{ lessonTarget === 'new' ? 'Agregar lección' : 'Editar nombre de la lección' }}</h2>
+
+      <form #lessonForm="ngForm" (ngSubmit)="saveLessonForm(lessonForm)" novalidate>
+        <label class="unit-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="lessonTitleInput"
+            required
+            [ngModel]="lessonTitleInput()"
+            (ngModelChange)="lessonTitleInput.set($event)"
+            [disabled]="lessonSaving()"
+          />
+        </label>
+
+        @if (lessonFormError(); as lessonError) {
+          <p class="unit-field__error" role="alert">{{ lessonError }}</p>
+        }
+
+        <div class="unit-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="lessonSaving()">
+            {{ lessonSaving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="lessonSaving()" (click)="cancelLessonForm()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteLesson(); as lesson) {
+  <div class="confirm-modal-backdrop" (click)="cancelDeleteLesson()">
+    <div
+      class="confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-lesson-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-lesson-title">Eliminar lección</h2>
+      <p>
+        ¿Seguro que quieres eliminar <strong>"{{ lesson.title }}"</strong>? Esta acción no se puede deshacer.
+      </p>
+
+      @if (deleteLessonError(); as deleteError) {
+        <p class="unit-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="unit-field__actions">
+        <button
+          type="button"
+          class="sl-btn sl-btn--danger"
+          [disabled]="deletingLesson()"
+          (click)="confirmDeleteLesson()"
+        >
+          {{ deletingLesson() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button type="button" class="sl-btn sl-btn--ghost" [disabled]="deletingLesson()" (click)="cancelDeleteLesson()">
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 }

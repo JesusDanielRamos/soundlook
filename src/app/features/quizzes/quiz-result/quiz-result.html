@@ -1,1 +1,128 @@
-<p>quiz-result — próximamente</p>
+@if (loading()) {
+  <p class="result-state">Cargando…</p>
+} @else if (error()) {
+  <p class="result-state result-state--error">{{ error() }}</p>
+} @else if (quiz(); as quiz) {
+  <nav class="result__breadcrumb" aria-label="Ruta">
+    <a [routerLink]="['/quizzes', quiz.id]">{{ quiz.title }}</a>
+    <span aria-hidden="true">›</span>
+    <span>{{ canManage() ? 'Calificaciones' : 'Resultado' }}</span>
+  </nav>
+
+  @if (canManage()) {
+    <h1>{{ quiz.title }}</h1>
+    <p class="result__subtitle">
+      {{ attempts().length }} intento{{ attempts().length === 1 ? '' : 's' }} de alumnos
+    </p>
+
+    <div class="attempts-list">
+      @for (attempt of attempts(); track attempt.id) {
+        <article class="attempt-card">
+          <button type="button" class="attempt-card__toggle" (click)="toggleAttempt(attempt.id)">
+            <span class="attempt-card__name">{{ attempt.studentName }}</span>
+            <span class="attempt-card__score">
+              {{ attempt.score !== null ? attempt.score + '%' : 'Sin calificación automática' }}
+            </span>
+            <span class="attempt-card__date">{{ attempt.createdAt | date: 'short' }}</span>
+          </button>
+
+          @if (isExpanded(attempt.id)) {
+            <div class="attempt-card__detail">
+              @for (question of quiz.questions; track question.id; let i = $index) {
+                <div class="attempt-answer">
+                  <p class="attempt-answer__prompt">{{ i + 1 }}. {{ question.prompt }}</p>
+
+                  @if (question.type === 'open') {
+                    <p class="attempt-answer__text">
+                      {{ findAnswer(attempt, question.id)?.text || '(sin respuesta)' }}
+                    </p>
+                  } @else {
+                    @let selectedTexts = selectedAnswerTexts(question, findAnswer(attempt, question.id));
+                    <p
+                      class="attempt-answer__text"
+                      [class.is-correct]="isQuestionCorrect(question, findAnswer(attempt, question.id))"
+                      [class.is-incorrect]="isQuestionCorrect(question, findAnswer(attempt, question.id)) === false"
+                    >
+                      {{ selectedTexts.length ? selectedTexts.join(', ') : '(sin respuesta)' }}
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </article>
+      } @empty {
+        <p class="result-state">Todavía nadie ha respondido este quiz.</p>
+      }
+    </div>
+  } @else {
+    @if (myLatestAttempt(); as attempt) {
+      <div class="score-hero">
+        @if (attempt.score !== null) {
+          <p class="score-hero__fraction">{{ myCorrectCount() }} / {{ totalClosedQuestions() }}</p>
+        }
+        <p class="score-hero__message">{{ resultMessage() }}</p>
+        <p class="score-hero__subtitle">{{ quiz.title }} · {{ quiz.unitTitle }}</p>
+
+        @if (attempt.score !== null) {
+          <div class="score-hero__badges">
+            <span class="score-badge score-badge--percent">{{ attempt.score }}% correcto</span>
+          </div>
+        }
+      </div>
+
+      <h2 class="result__review-title">Revisión de respuestas</h2>
+
+      <div class="attempts-list">
+        @for (question of quiz.questions; track question.id; let i = $index) {
+          @let correct = isQuestionCorrect(question, findAnswer(attempt, question.id));
+          @let selectedTexts = selectedAnswerTexts(question, findAnswer(attempt, question.id));
+
+          <article
+            class="review-card"
+            [class.review-card--correct]="correct === true"
+            [class.review-card--incorrect]="correct === false"
+          >
+            <p class="review-card__prompt">
+              @if (correct === true) {
+                <span class="review-card__icon review-card__icon--correct" aria-hidden="true">✓</span>
+              } @else if (correct === false) {
+                <span class="review-card__icon review-card__icon--incorrect" aria-hidden="true">✕</span>
+              }
+              {{ i + 1 }}. {{ question.prompt }}
+            </p>
+
+            @if (question.type === 'open') {
+              <span class="review-pill">Tu respuesta: {{ findAnswer(attempt, question.id)?.text || '(sin respuesta)' }}</span>
+              <p class="review-card__hint">Pregunta abierta — no se autocalifica.</p>
+            } @else {
+              <div class="review-card__pills">
+                <span class="review-pill" [class.review-pill--correct]="correct === true">
+                  Tu respuesta: {{ selectedTexts.length ? selectedTexts.join(', ') : '(sin respuesta)' }}
+                </span>
+                @if (correct === false) {
+                  <span class="review-pill review-pill--answer">
+                    Correcta: {{ correctAnswerTexts(question).join(', ') }}
+                  </span>
+                }
+              </div>
+            }
+          </article>
+        }
+      </div>
+
+      <div class="result__actions">
+        <a [routerLink]="['/quizzes', quiz.id]" class="sl-btn sl-btn--outline">↺ Volver a intentar</a>
+        <a [routerLink]="['/courses', quiz.courseId, 'units', quiz.unitId]" class="sl-btn sl-btn--primary">
+          Volver a la unidad →
+        </a>
+      </div>
+    } @else {
+      <p class="result-state">
+        Aún no has respondido este quiz. <a [routerLink]="['/quizzes', quiz.id]">Tómalo ahora →</a>
+      </p>
+    }
+  }
+} @else {
+  <p class="result-state">No encontramos este quiz.</p>
+}
