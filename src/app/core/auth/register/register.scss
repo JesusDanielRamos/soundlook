@@ -47,6 +47,13 @@
   width: fit-content;
 }
 
+.auth-brand-logo {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
 .auth-visual__content h1 {
   margin: 0 0 1rem;
   font-size: 2.125rem;
@@ -111,6 +118,11 @@
   font-weight: 700;
   font-size: 1.125rem;
   margin-bottom: 2rem;
+
+  .auth-brand-logo {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 .auth-form-panel__inner h2 {

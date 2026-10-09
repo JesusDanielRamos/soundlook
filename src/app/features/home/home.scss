@@ -61,6 +61,35 @@
   border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--sl-shadow-lg);
+  aspect-ratio: 4 / 3;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.hero__art--placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--sl-color-surface);
+  border: 2px dashed var(--sl-color-border);
+  color: var(--sl-color-text-muted);
+  box-shadow: none;
+
+  svg {
+    opacity: 0.6;
+  }
+
+  span {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
 }
 
 .features {
