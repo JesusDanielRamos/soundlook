@@ -195,8 +195,9 @@
 @media (max-width: 900px) {
   .app-header__nav {
     position: fixed;
-    inset: 4rem 0 0 0;
+    inset: var(--sl-header-height) 0 0 0;
     left: 0;
+    z-index: 100;
     transform: translateY(-8px);
     flex-direction: column;
     align-items: stretch;
@@ -204,6 +205,7 @@
     gap: 0;
     background: var(--sl-color-bg);
     padding: 0.5rem 1.5rem 1.5rem;
+    overflow-y: auto;
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
@@ -223,19 +225,47 @@
   }
 
   .app-header__nav-auth {
-    display: block;
+    display: flex;
+    flex-direction: column;
     margin-top: 0.75rem;
-    color: white;
 
-    a,
+    a {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--sl-color-border);
+      color: var(--sl-color-text);
+      text-decoration: none;
+    }
+
     .sl-btn {
       width: 100%;
       text-align: center;
+      margin-top: 0.75rem;
+    }
+  }
+
+  .app-header__nav-auth-theme {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.85rem 0;
+    border: none;
+    border-bottom: 1px solid var(--sl-color-border);
+    background: none;
+    color: var(--sl-color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    svg {
+      flex: none;
+      color: var(--sl-color-text-muted);
     }
   }
 
   .app-header__actions > .sl-btn--primary,
-  .app-header__user {
+  .app-header__user,
+  .app-header__theme-toggle {
     display: none;
   }
 

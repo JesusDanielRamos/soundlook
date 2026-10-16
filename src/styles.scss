@@ -86,6 +86,15 @@ body {
   transition: background-color 0.2s ease;
 }
 
+/* Resguardo global: un título/texto sin espacios (URL, correo, error de
+   tipeo) nunca debe desbordar su contenedor en pantallas angostas. Las
+   palabras normales siguen partiéndose por espacio como de costumbre. */
+h1,
+h2,
+h3 {
+  overflow-wrap: anywhere;
+}
+
 /* Shared button utilities (used across header, home, auth screens) */
 .sl-btn {
   display: inline-flex;

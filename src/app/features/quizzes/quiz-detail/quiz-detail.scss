@@ -42,11 +42,15 @@
 
 .quiz-detail__heading-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
 
   h1 {
+    flex: 1 1 12rem;
+    min-width: 0;
     margin: 0;
+    overflow-wrap: break-word;
     color: var(--sl-blue-900);
   }
 }
@@ -181,9 +185,10 @@
 /* --- Formulario de respuesta del alumno (una pregunta a la vez) --- */
 .quiz-taking-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   background: var(--sl-color-surface);
   border: 1px solid var(--sl-color-border);
   border-radius: 14px;
@@ -191,9 +196,15 @@
   margin-bottom: 1.25rem;
 }
 
+.quiz-taking-header__info {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
 .quiz-taking-header__title {
   margin: 0 0 0.2rem;
   font-weight: 700;
+  overflow-wrap: break-word;
   color: var(--sl-color-text);
 }
 
@@ -472,4 +483,24 @@
 .quiz-field__actions {
   display: flex;
   gap: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .quiz-taking-header,
+  .quiz-taking-question {
+    padding: 1rem 1.125rem;
+  }
+
+  .quiz-question-card {
+    padding: 1.125rem 2.5rem 1.125rem 1rem;
+  }
+
+  .quiz-taking__nav {
+    flex-direction: column-reverse;
+
+    .sl-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
 }

@@ -8,7 +8,8 @@
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
   background: var(--sl-gradient-primary);
   color: var(--sl-color-primary-contrast);
   border-radius: 14px;
@@ -19,7 +20,16 @@
   h1 {
     margin: 0;
     font-size: 1.375rem;
+    overflow-wrap: break-word;
   }
+}
+
+.profile-header__info {
+  // Sin esto, un flex item no se encoge por debajo del ancho de su
+  // contenido (min-width: auto por default) y un nombre/correo largo
+  // empuja el badge afuera y desborda la tarjeta en vez de hacer wrap.
+  flex: 1 1 10rem;
+  min-width: 0;
 }
 
 .profile-avatar {
@@ -39,6 +49,7 @@
   margin: 0.125rem 0 0;
   opacity: 0.9;
   font-size: 0.9375rem;
+  overflow-wrap: break-word;
 }
 
 .profile-role-badge {
@@ -84,6 +95,8 @@
 .profile-card__value {
   font-weight: 600;
   text-align: right;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .profile-card__saved {
@@ -136,4 +149,58 @@
 .profile-loading {
   color: var(--sl-color-text-muted);
   padding: 1.5rem 0;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .profile-header {
+    padding: 1.5rem;
+  }
+
+  .profile-card {
+    padding: 1.25rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-header {
+    text-align: center;
+    justify-content: center;
+  }
+
+  .profile-avatar {
+    margin: 0 auto;
+  }
+
+  .profile-header__info {
+    flex-basis: 100%;
+    text-align: center;
+  }
+
+  .profile-role-badge {
+    margin-left: 0;
+    align-self: center;
+  }
+
+  .profile-card__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .profile-card__value {
+    text-align: left;
+  }
+
+  .profile-form__actions {
+    flex-direction: column;
+
+    .sl-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
 }

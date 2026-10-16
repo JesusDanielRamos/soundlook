@@ -1,7 +1,7 @@
 @if (profile(); as profile) {
   <section class="profile-header">
     <span class="profile-avatar">{{ initial() }}</span>
-    <div>
+    <div class="profile-header__info">
       <h1>{{ profile.fullName || 'Sin nombre registrado' }}</h1>
       <p class="profile-header__email">{{ email() }}</p>
     </div>

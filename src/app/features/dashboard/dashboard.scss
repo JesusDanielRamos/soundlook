@@ -210,6 +210,14 @@
 }
 
 @media (max-width: 640px) {
+  :host {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .dash-welcome {
+    padding: 1.25rem 1.5rem;
+  }
+
   .dash-stats {
     grid-template-columns: 1fr;
   }

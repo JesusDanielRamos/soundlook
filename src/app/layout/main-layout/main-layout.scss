@@ -36,3 +36,12 @@
     padding-bottom: calc(var(--sl-mobile-nav-height) + env(safe-area-inset-bottom));
   }
 }
+
+@media (max-width: 640px) {
+  .layout-body--with-sidebar .layout-content {
+    /* Cada página agrega su propio padding encima de este — en pantallas
+       angostas la suma de ambos dejaba muy poco ancho real de contenido. */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
