@@ -7,6 +7,10 @@ interface SignUpDatosExtra {
   semester: number | null;
   hasDisability: boolean;
   disabilityDescription: string | null;
+  // Si coincide con el código secreto que revisa handle_new_user() en
+  // Postgres, la cuenta se crea como 'docente' en vez de 'estudiante'. La
+  // comparación real pasa en el servidor, nunca en el cliente.
+  teacherCode?: string | null;
 }
 
 export interface ProfileUpdate {
@@ -50,6 +54,7 @@ export class AuthService {
           semester: datosExtra.semester,
           has_disability: datosExtra.hasDisability,
           disability_description: datosExtra.disabilityDescription,
+          teacher_code: datosExtra.teacherCode || null,
         },
       },
     });

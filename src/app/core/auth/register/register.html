@@ -175,6 +175,40 @@
           }
         </div>
 
+        <div class="auth-field auth-field--teacher">
+          @if (!teacherMode()) {
+            <button type="button" class="auth-teacher-toggle" (click)="toggleTeacherMode()">
+              ¿Eres profesor? →
+            </button>
+          } @else {
+            <div class="auth-teacher-box">
+              <div class="auth-teacher-box__header">
+                <span>Registro de docente</span>
+                <button type="button" class="auth-teacher-box__close" (click)="toggleTeacherMode()">
+                  Cancelar
+                </button>
+              </div>
+
+              <label class="auth-field">
+                <span>Código de docente</span>
+                <input
+                  type="text"
+                  name="teacherCode"
+                  placeholder="Código proporcionado por la institución"
+                  autocomplete="off"
+                  [ngModel]="teacherCode()"
+                  (ngModelChange)="teacherCode.set($event)"
+                  [disabled]="loading() || formularioBloqueado"
+                />
+              </label>
+
+              <p class="auth-teacher-box__hint">
+                Tu cuenta se creará con permisos de docente solo si el código es correcto.
+              </p>
+            </div>
+          }
+        </div>
+
         @if (errorMessage(); as error) {
           <p class="auth-form__error" role="alert">{{ error }}</p>
         }

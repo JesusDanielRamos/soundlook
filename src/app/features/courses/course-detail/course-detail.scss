@@ -268,10 +268,16 @@
   }
 }
 
-/* --- Sidebar de progreso --- */
-.course-progress-card {
+/* --- Sidebar (herramientas + progreso) --- */
+.course-detail__sidebar {
   position: sticky;
   top: calc(var(--sl-header-height) + 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.course-progress-card {
   background: var(--sl-color-bg);
   border: 1px solid var(--sl-color-border);
   border-radius: 14px;
@@ -288,6 +294,39 @@
     border: none;
     border-top: 1px solid var(--sl-color-border);
     margin: 0.75rem 0 1.25rem;
+  }
+}
+
+.course-tool-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.75rem;
+  margin: -0.75rem;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--sl-color-surface);
+  }
+
+  > span:first-child {
+    flex: none;
+    font-size: 1.5rem;
+  }
+
+  strong {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--sl-color-text);
+  }
+
+  small {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--sl-color-text-muted);
   }
 }
 
@@ -348,7 +387,7 @@
     grid-template-columns: 1fr;
   }
 
-  .course-progress-card {
+  .course-detail__sidebar {
     position: static;
   }
 }

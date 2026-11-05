@@ -315,6 +315,72 @@
   }
 }
 
+.auth-teacher-toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-primary);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.auth-teacher-box {
+  background: var(--sl-blue-50, #eef2ff);
+  border: 1px solid var(--sl-color-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+
+  .auth-field {
+    gap: 0.35rem;
+
+    span {
+      font-weight: 500;
+      color: var(--sl-color-text-muted);
+    }
+  }
+}
+
+.auth-teacher-box__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-text);
+}
+
+.auth-teacher-box__close {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sl-color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--sl-color-primary);
+  }
+}
+
+.auth-teacher-box__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--sl-color-text-muted);
+}
+
 .auth-form__error {
   margin: -0.5rem 0 0;
   padding: 0.65rem 0.85rem;

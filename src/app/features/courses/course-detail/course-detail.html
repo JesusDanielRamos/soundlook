@@ -110,9 +110,23 @@
       }
     </div>
 
-    <aside class="course-progress-card">
-      <h2>Tu progreso</h2>
-      <hr />
+    <div class="course-detail__sidebar">
+      <aside class="course-progress-card">
+        <h2>Herramientas</h2>
+        <hr />
+
+        <a [routerLink]="['/courses', course.id, 'transcripcion']" class="course-tool-link">
+          <span aria-hidden="true">🎙</span>
+          <span>
+            <strong>Transcripción en vivo</strong>
+            <small>Convierte voz a texto en tiempo real</small>
+          </span>
+        </a>
+      </aside>
+
+      <aside class="course-progress-card">
+        <h2>Tu progreso</h2>
+        <hr />
 
       <p class="course-progress-card__percent">{{ course.percent }}% completado</p>
       <div class="progress-bar">
@@ -135,7 +149,8 @@
           {{ continueLabel() }}
         </a>
       }
-    </aside>
+      </aside>
+    </div>
   </div>
 } @else {
   <p class="course-detail-state">No encontramos este curso.</p>

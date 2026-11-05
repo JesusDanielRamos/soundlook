@@ -1,0 +1,86 @@
+@if (loading()) {
+  <p class="session-state">Cargando sesión…</p>
+} @else if (error()) {
+  <p class="session-state session-state--error">{{ error() }}</p>
+} @else if (session(); as session) {
+  <a [routerLink]="['/courses', session.courseId, 'transcripcion']" class="session__back">
+    ← Volver a sesiones
+  </a>
+
+  <header class="session__header">
+    <div>
+      <span class="session__status" [class.session__status--live]="session.status === 'live'">
+        {{ session.status === 'live' ? '🔴 En vivo' : '✓ Finalizada' }}
+      </span>
+      <h1>{{ session.title }}</h1>
+      <p class="session__meta">
+        {{ session.courseTitle }} · {{ session.startedAt | date: 'medium' }}
+        @if (session.endedAt) {
+          — {{ session.endedAt | date: 'shortTime' }}
+        }
+      </p>
+    </div>
+
+    @if (canManage() && isLive()) {
+      <button type="button" class="sl-btn sl-btn--danger" [disabled]="endingSession()" (click)="endSession()">
+        {{ endingSession() ? 'Finalizando…' : 'Finalizar sesión' }}
+      </button>
+    }
+  </header>
+
+  @if (canManage() && isLive()) {
+    @if (!micSupported()) {
+      <p class="session__unsupported">
+        Tu navegador no soporta la transcripción de voz. Prueba abrir esta página con Google Chrome o
+        Microsoft Edge.
+      </p>
+    } @else {
+      <div class="session__broadcast-controls">
+        @if (!broadcasting()) {
+          <button type="button" class="sl-btn sl-btn--primary sl-btn--lg" (click)="startBroadcast()">
+            🎤 Iniciar transmisión
+          </button>
+        } @else {
+          <button type="button" class="sl-btn sl-btn--outline sl-btn--lg" (click)="stopBroadcast()">
+            ⏸ Pausar transmisión
+          </button>
+        }
+      </div>
+
+      @if (broadcasting()) {
+        <p class="session__live-indicator">
+          <span class="session__dot" aria-hidden="true"></span> Transmitiendo — los alumnos están viendo esto en
+          vivo
+        </p>
+      }
+
+      @if (micError(); as mError) {
+        <p class="session__error" role="alert">{{ mError }}</p>
+      }
+    }
+  } @else if (isLive()) {
+    <p class="session__live-indicator">
+      <span class="session__dot" aria-hidden="true"></span> Sesión en vivo — el texto va apareciendo conforme el
+      docente habla
+    </p>
+  }
+
+  <div class="session__panel" #panel aria-live="polite">
+    @if (lines().length === 0 && !interimText()) {
+      <p class="session__empty">
+        {{ isLive() ? 'Todavía no hay texto — esperando a que empiece a hablar…' : 'Esta sesión no tiene texto guardado.' }}
+      </p>
+    }
+
+    @for (line of lines(); track line.id) {
+      <p class="session__line">
+        <span class="session__time">{{ line.saidAt | date: 'shortTime' }}</span>
+        {{ line.text }}
+      </p>
+    }
+
+    @if (interimText()) {
+      <p class="session__line session__line--interim">{{ interimText() }}</p>
+    }
+  </div>
+}

@@ -35,6 +35,10 @@ export class Register implements OnDestroy {
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
 
+  // --- Registro como docente, oculto detrás de un link aparte ---
+  protected readonly teacherMode = signal(false);
+  protected readonly teacherCode = signal('');
+
   protected readonly loading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
@@ -77,6 +81,13 @@ export class Register implements OnDestroy {
     }
   }
 
+  toggleTeacherMode(): void {
+    this.teacherMode.update((open) => !open);
+    if (!this.teacherMode()) {
+      this.teacherCode.set('');
+    }
+  }
+
   async onSubmit(form: NgForm): Promise<void> {
     this.errorMessage.set(null);
 
@@ -101,6 +112,11 @@ export class Register implements OnDestroy {
       return;
     }
 
+    if (this.teacherMode() && !this.teacherCode().trim()) {
+      this.errorMessage.set('Ingresa el código de docente, o cierra esa sección si no aplica.');
+      return;
+    }
+
     const email = this.email().trim().toLowerCase();
     const fullName = this.fullName().trim();
 
@@ -113,6 +129,7 @@ export class Register implements OnDestroy {
         semester: typeof semesterValue === 'number' ? semesterValue : null,
         hasDisability: this.hasDisability(),
         disabilityDescription: this.hasDisability() ? this.disabilityDescription().trim() : null,
+        teacherCode: this.teacherMode() ? this.teacherCode().trim() : null,
       });
       this.intentosFallidos = 0;
       await this.router.navigateByUrl('/dashboard');
@@ -120,8 +137,14 @@ export class Register implements OnDestroy {
       // A diferencia del login, aquí sí es útil decirle al usuario la razón
       // exacta (p. ej. "correo ya registrado"): no hay una cuenta ajena que
       // proteger de enumeración, es la suya propia la que está creando.
+      //
+      // El código de docente se valida en un trigger de Postgres: si no
+      // coincide, Supabase suele devolver un error genérico ("Database error
+      // saving new user") en vez del mensaje exacto del trigger, así que
+      // agregamos una pista extra cuando aplica.
+      const mensaje = error instanceof Error ? error.message : 'No se pudo crear la cuenta. Intenta de nuevo.';
       this.errorMessage.set(
-        error instanceof Error ? error.message : 'No se pudo crear la cuenta. Intenta de nuevo.',
+        this.teacherMode() ? `${mensaje} Verifica que el código de docente sea correcto.` : mensaje,
       );
       this.registrarIntentoFallido();
     } finally {

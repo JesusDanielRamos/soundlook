@@ -1,0 +1,223 @@
+<a [routerLink]="['/courses', courseId()]" class="transcription__back">← Volver al curso</a>
+
+@if (loading()) {
+  <p class="transcription-state">Cargando sesiones…</p>
+} @else if (error()) {
+  <p class="transcription-state transcription-state--error">{{ error() }}</p>
+} @else {
+  <header class="transcription-list__header">
+    <div>
+      <h1>🎙 Transcripción en vivo</h1>
+      @if (courseTitle()) {
+        <p class="transcription-list__subtitle">{{ courseTitle() }}</p>
+      }
+    </div>
+
+    @if (canManage() && !liveSession()) {
+      <button type="button" class="sl-btn sl-btn--primary" (click)="openNewSessionForm()">+ Nueva sesión</button>
+    }
+  </header>
+
+  @if (liveSession(); as live) {
+    <a [routerLink]="['/courses', courseId(), 'transcripcion', live.id]" class="live-banner">
+      <span class="live-banner__dot" aria-hidden="true"></span>
+      <span class="live-banner__text">
+        <strong>En vivo ahora:</strong> {{ live.title }}
+      </span>
+      <span class="live-banner__cta">Ver en vivo →</span>
+    </a>
+  }
+
+  <h2 class="transcription-list__sessions-title">Sesiones guardadas</h2>
+
+  <div class="session-list">
+    @for (session of pastSessions(); track session.id) {
+      <div class="session-card">
+        <a [routerLink]="['/courses', courseId(), 'transcripcion', session.id]" class="session-card__link">
+          <span class="session-card__title">{{ session.title }}</span>
+          <span class="session-card__meta">
+            {{ session.startedAt | date: 'medium' }} · {{ session.lineCount }} línea{{
+              session.lineCount === 1 ? '' : 's'
+            }}
+            @if (session.createdByName) {
+              · {{ session.createdByName }}
+            }
+          </span>
+        </a>
+
+        @if (canManage()) {
+          <span class="session-card__manage">
+            <button
+              type="button"
+              class="session-card__icon-btn"
+              aria-label="Editar título de la sesión"
+              (click)="openEditTitle(session)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 20h4.2l10.1-10.1a1.5 1.5 0 0 0 0-2.1l-2.1-2.1a1.5 1.5 0 0 0-2.1 0L4 15.8V20Z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="session-card__icon-btn session-card__icon-btn--danger"
+              aria-label="Eliminar sesión"
+              (click)="requestDeleteSession(session)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.8 12.1a2 2 0 0 1-2 1.9H9.8a2 2 0 0 1-2-1.9L7 7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </span>
+        }
+      </div>
+    } @empty {
+      <p class="transcription-state">
+        {{
+          canManage()
+            ? 'Todavía no hay sesiones guardadas — crea una con "+ Nueva sesión".'
+            : 'Todavía no hay sesiones guardadas en este curso.'
+        }}
+      </p>
+    }
+  </div>
+}
+
+@if (newSessionFormOpen()) {
+  <div class="transcription-modal-backdrop" (click)="cancelNewSessionForm()">
+    <div
+      class="transcription-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new-session-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="new-session-title">Nueva sesión de transcripción</h2>
+
+      <form #newSessionForm="ngForm" (ngSubmit)="saveNewSessionForm(newSessionForm)" novalidate>
+        <label class="transcription-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="newSessionTitle"
+            required
+            [ngModel]="newSessionTitle()"
+            (ngModelChange)="newSessionTitle.set($event)"
+            [disabled]="creatingSession()"
+          />
+        </label>
+
+        @if (newSessionError(); as formError) {
+          <p class="transcription-field__error" role="alert">{{ formError }}</p>
+        }
+
+        <div class="transcription-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="creatingSession()">
+            {{ creatingSession() ? 'Creando…' : 'Iniciar sesión' }}
+          </button>
+          <button
+            type="button"
+            class="sl-btn sl-btn--ghost"
+            [disabled]="creatingSession()"
+            (click)="cancelNewSessionForm()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (editTitleFor(); as target) {
+  <div class="transcription-modal-backdrop" (click)="cancelEditTitle()">
+    <div
+      class="transcription-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-session-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="edit-session-title">Editar título de la sesión</h2>
+
+      <form #editTitleForm="ngForm" (ngSubmit)="saveEditTitle(editTitleForm)" novalidate>
+        <label class="transcription-field">
+          <span>Título</span>
+          <input
+            type="text"
+            name="editTitleInput"
+            required
+            [ngModel]="editTitleInput()"
+            (ngModelChange)="editTitleInput.set($event)"
+            [disabled]="editingTitle()"
+          />
+        </label>
+
+        @if (editTitleError(); as formError) {
+          <p class="transcription-field__error" role="alert">{{ formError }}</p>
+        }
+
+        <div class="transcription-field__actions">
+          <button type="submit" class="sl-btn sl-btn--primary" [disabled]="editingTitle()">
+            {{ editingTitle() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="sl-btn sl-btn--ghost" [disabled]="editingTitle()" (click)="cancelEditTitle()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteSession(); as session) {
+  <div class="transcription-modal-backdrop" (click)="cancelDeleteSession()">
+    <div
+      class="transcription-modal transcription-modal--confirm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-session-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="confirm-delete-session-title">Eliminar sesión</h2>
+      <p>
+        ¿Seguro que quieres eliminar <strong>"{{ session.title }}"</strong> y toda su transcripción? Esta acción no
+        se puede deshacer.
+      </p>
+
+      @if (deleteSessionError(); as deleteError) {
+        <p class="transcription-field__error" role="alert">{{ deleteError }}</p>
+      }
+
+      <div class="transcription-field__actions">
+        <button
+          type="button"
+          class="sl-btn sl-btn--danger"
+          [disabled]="deletingSession()"
+          (click)="confirmDeleteSession()"
+        >
+          {{ deletingSession() ? 'Eliminando…' : 'Eliminar' }}
+        </button>
+        <button
+          type="button"
+          class="sl-btn sl-btn--ghost"
+          [disabled]="deletingSession()"
+          (click)="cancelDeleteSession()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+}
