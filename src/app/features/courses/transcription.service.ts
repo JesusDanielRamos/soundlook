@@ -200,6 +200,20 @@ export class TranscriptionService {
       .subscribe();
   }
 
+  // Escucha cualquier cambio en las sesiones del curso (una nueva, una que
+  // termina, título editado, eliminada) para refrescar la lista sin que
+  // quien la esté viendo tenga que recargar la página.
+  subscribeToCourseSessions(courseId: string, onChange: () => void): RealtimeChannel {
+    return this.supabase
+      .channel(`transcription-sessions-${courseId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transcription_sessions', filter: `course_id=eq.${courseId}` },
+        () => onChange(),
+      )
+      .subscribe();
+  }
+
   async unsubscribe(channel: RealtimeChannel): Promise<void> {
     await this.supabase.removeChannel(channel);
   }

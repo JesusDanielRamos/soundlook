@@ -1,8 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CoursesService } from '../courses.service';
@@ -14,12 +15,14 @@ import { TranscriptionSessionSummary, TranscriptionService } from '../transcript
   templateUrl: './course-transcription.html',
   styleUrl: './course-transcription.scss',
 })
-export class CourseTranscription {
+export class CourseTranscription implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly coursesService = inject(CoursesService);
   private readonly transcriptionService = inject(TranscriptionService);
+
+  private sessionsChannel: RealtimeChannel | null = null;
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -151,6 +154,7 @@ export class CourseTranscription {
   }
 
   private async load(courseId: string | null): Promise<void> {
+    this.cleanupChannel();
     this.sessions.set([]);
 
     if (!courseId) {
@@ -170,10 +174,38 @@ export class CourseTranscription {
       ]);
       this.courseTitle.set(course?.title ?? null);
       this.sessions.set(sessions);
+
+      this.sessionsChannel = this.transcriptionService.subscribeToCourseSessions(courseId, () => {
+        void this.refreshSessions(courseId);
+      });
     } catch {
       this.error.set('No pudimos cargar las sesiones. Intenta de nuevo más tarde.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // A diferencia de load(), no toca loading()/error() ni reinicia la lista a
+  // vacío primero — es un refresco silencioso disparado por Realtime, no
+  // debe parpadear la pantalla cada vez que alguien más crea o termina una
+  // sesión.
+  private async refreshSessions(courseId: string): Promise<void> {
+    try {
+      this.sessions.set(await this.transcriptionService.listSessions(courseId));
+    } catch {
+      // Silencioso: si falla, el usuario sigue viendo la última lista buena
+      // y el próximo evento de Realtime (o un refresh manual) lo corrige.
+    }
+  }
+
+  private cleanupChannel(): void {
+    if (this.sessionsChannel) {
+      void this.transcriptionService.unsubscribe(this.sessionsChannel);
+      this.sessionsChannel = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupChannel();
   }
 }
