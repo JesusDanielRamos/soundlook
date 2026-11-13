@@ -71,24 +71,66 @@
   }
 }
 
-.hero__art--placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  background: var(--sl-color-surface);
-  border: 2px dashed var(--sl-color-border);
-  color: var(--sl-color-text-muted);
-  box-shadow: none;
+.hero__art--waveform {
+  position: relative;
+}
 
-  svg {
-    opacity: 0.6;
+.hero-wave {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-wave__baseline {
+  stroke: var(--sl-blue-900);
+  stroke-width: 1;
+  opacity: 0.15;
+}
+
+.hero-wave__bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-wave-pulse 2.6s ease-in-out infinite;
+}
+
+.hero-wave__line {
+  stroke-linecap: round;
+
+  &--bg {
+    stroke: var(--sl-blue-300);
+    stroke-width: 7;
+    opacity: 0.45;
   }
 
-  span {
-    font-size: 0.875rem;
-    font-weight: 600;
+  &--fg {
+    stroke: url(#heroWaveFg);
+    stroke-width: 3.5;
+  }
+}
+
+// Retraso escalonado por barra para que la animación se sienta como un
+// ecualizador respirando, no como todas las barras moviéndose a la vez.
+// Los primeros 3 hijos del <svg> son <defs>, <rect> y la línea base, así
+// que el primer grupo de barra cae en nth-child(4).
+@for $i from 1 through 27 {
+  .hero-wave__bar:nth-child(#{$i + 3}) {
+    animation-delay: #{($i - 1) * 0.07}s;
+  }
+}
+
+@keyframes hero-wave-pulse {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-wave__bar {
+    animation: none;
   }
 }
 
