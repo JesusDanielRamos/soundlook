@@ -19,6 +19,11 @@
   --sl-color-accent: var(--sl-blue-300);
   --sl-color-border: #dbe6fb;
 
+  /* Color de títulos de sección (h2/h3 tipo "Curso disponible"). Azul de
+     marca en modo claro; en modo oscuro se redefine más abajo porque ese
+     azul fijo queda casi invisible sobre fondo oscuro. */
+  --sl-color-heading: var(--sl-blue-900);
+
   /* Fondo del "lienzo" detrás del header/sidebar/tarjetas — un tono más
      oscuro que --sl-color-bg en modo oscuro, para dar sensación de
      profundidad (tarjetas "flotando" sobre el lienzo). En claro son iguales. */
@@ -64,10 +69,17 @@ body[tuiTheme='dark'] {
   --sl-color-primary-contrast: #ffffff;
   --sl-color-accent: #60a5fa;
   --sl-color-border: #2d3a4f;
+  --sl-color-heading: #e2e8f0;
 
   --sl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --sl-shadow-md: 0 10px 24px rgba(0, 0, 0, 0.4);
   --sl-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
+
+  /* Usados como fondo de sección completa en la landing pública (home) —
+     sin esto se quedaban con el degradado claro fijo también en modo
+     oscuro, una franja clara en medio de una página oscura. */
+  --sl-gradient-hero: linear-gradient(135deg, #111827 0%, #0f172a 55%, #0b1220 100%);
+  --sl-gradient-art: linear-gradient(160deg, #1e293b 0%, #0b1220 100%);
 }
 
 html,

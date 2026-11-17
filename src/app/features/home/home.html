@@ -18,18 +18,11 @@ de audio de forma <br> <span style="font-style: italic;"> accesible e interactiv
     <div class="hero__art hero__art--waveform" aria-hidden="true">
       <svg class="hero-wave" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <linearGradient id="heroWaveBg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="var(--sl-blue-50)" />
-            <stop offset="100%" stop-color="var(--sl-blue-300)" />
-          </linearGradient>
           <linearGradient id="heroWaveFg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--sl-blue-600)" />
-            <stop offset="100%" stop-color="var(--sl-blue-900)" />
+            <stop offset="0%" stop-color="#6362d3" />
+            <stop offset="100%" stop-color="#46458f" />
           </linearGradient>
         </defs>
-
-        <rect x="0" y="0" width="400" height="300" fill="url(#heroWaveBg)" />
-        <line x1="24" y1="150" x2="376" y2="150" class="hero-wave__baseline" />
 
         @for (bar of waveformBars; track $index) {
           <g class="hero-wave__bar">

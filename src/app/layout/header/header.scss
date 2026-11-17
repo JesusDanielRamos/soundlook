@@ -48,7 +48,7 @@
   align-items: center;
   gap: 2rem;
 
-  a {
+  a:not(.sl-btn) {
     color: var(--sl-color-text);
     text-decoration: none;
     font-weight: 500;
@@ -211,7 +211,7 @@
     visibility: hidden;
     transition: opacity 0.15s ease, transform 0.15s ease;
 
-    a {
+    a:not(.sl-btn) {
       padding: 0.85rem 0;
       border-bottom: 1px solid var(--sl-color-border);
     }
@@ -229,7 +229,7 @@
     flex-direction: column;
     margin-top: 0.75rem;
 
-    a {
+    a:not(.sl-btn) {
       padding: 0.85rem 0;
       border-bottom: 1px solid var(--sl-color-border);
       color: var(--sl-color-text);

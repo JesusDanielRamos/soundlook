@@ -18,52 +18,7 @@
       }
 
       <div class="app-header__nav-auth">
-        @if (isAuthenticated()) {
-          <a routerLink="/dashboard" (click)="closeMobileMenu()">Panel</a>
-          <a routerLink="/profile" (click)="closeMobileMenu()">Perfil</a>
-          <a routerLink="/progress" (click)="closeMobileMenu()">Avance</a>
-          <button type="button" class="app-header__nav-auth-theme" (click)="toggleDarkMode()">
-            @if (darkMode()) {
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <span>Modo día</span>
-            } @else {
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8" />
-                <path
-                  d="M12 2.5v2.25M12 19.25v2.25M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.4 19.6 6 18M18 6l1.6-1.6"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span>Modo oscuro</span>
-            }
-          </button>
-          <button type="button" class="sl-btn sl-btn--ghost" (click)="signOut()">Cerrar sesión</button>
-        } @else {
-          <a routerLink="/auth/login" class="sl-btn sl-btn--primary" (click)="closeMobileMenu()">Iniciar sesión</a>
-        }
-      </div>
-    </nav>
-
-    <div class="app-header__actions">
-      @if (isAuthenticated()) {
-        <button
-          type="button"
-          class="app-header__theme-toggle"
-          (click)="toggleDarkMode()"
-          [attr.aria-pressed]="darkMode()"
-          [attr.aria-label]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
-          [title]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
-        >
+        <button type="button" class="app-header__nav-auth-theme" (click)="toggleDarkMode()">
           @if (darkMode()) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -74,6 +29,7 @@
                 stroke-linejoin="round"
               />
             </svg>
+            <span>Modo día</span>
           } @else {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8" />
@@ -84,9 +40,54 @@
                 stroke-linecap="round"
               />
             </svg>
+            <span>Modo oscuro</span>
           }
         </button>
 
+        @if (isAuthenticated()) {
+          <a routerLink="/dashboard" (click)="closeMobileMenu()">Panel</a>
+          <a routerLink="/profile" (click)="closeMobileMenu()">Perfil</a>
+          <a routerLink="/progress" (click)="closeMobileMenu()">Avance</a>
+          <button type="button" class="sl-btn sl-btn--ghost" (click)="signOut()">Cerrar sesión</button>
+        } @else {
+          <a routerLink="/auth/login" class="sl-btn sl-btn--primary" (click)="closeMobileMenu()">Iniciar sesión</a>
+        }
+      </div>
+    </nav>
+
+    <div class="app-header__actions">
+      <button
+        type="button"
+        class="app-header__theme-toggle"
+        (click)="toggleDarkMode()"
+        [attr.aria-pressed]="darkMode()"
+        [attr.aria-label]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
+        [title]="darkMode() ? 'Cambiar a modo día' : 'Cambiar a modo oscuro'"
+      >
+        @if (darkMode()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8" />
+            <path
+              d="M12 2.5v2.25M12 19.25v2.25M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.4 19.6 6 18M18 6l1.6-1.6"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        }
+      </button>
+
+      @if (isAuthenticated()) {
         <div class="app-header__user">
           <button
             type="button"
@@ -109,7 +110,7 @@
           }
         </div>
       } @else {
-        <a routerLink="/auth/login" class="sl-btn sl-btn--primary" style="color: white;">Iniciar sesión</a>
+        <a routerLink="/auth/login" class="sl-btn sl-btn--primary">Iniciar sesión</a>
       }
 
       <button
